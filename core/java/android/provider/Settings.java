@@ -6609,6 +6609,13 @@ public final class Settings {
         public static final String GESTURE_NAVBAR_RADIUS = "gesture_navbar_radius";
 
         /**
+         * boolean value. toggles using arrow key locations on nav bar
+         * as left and right dpad keys
+         * @hide
+         */
+        public static final String NAVIGATION_BAR_MENU_ARROW_KEYS = "navigation_bar_menu_arrow_keys";
+
+        /**
          * Keys we no longer back up under the current schema, but want to continue to
          * process when restoring historical backup datasets.
          *
