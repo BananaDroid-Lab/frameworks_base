@@ -5599,7 +5599,7 @@ public final class Settings {
          */
         public static final String POWERMENU_LOGOUT = "powermenu_logout";
 
-        /**
+  f      /**
          * Whether to display the users option in the power menu
          * @hide
          */
@@ -6173,6 +6173,18 @@ public final class Settings {
          * @hide
          */
         public static final String QS_TILE_ANIMATION_INTERPOLATOR = "qs_tile_animation_interpolator";
+
+        /**
+         * Whether to enable or disable vibration on succesful fingerprint auth
+         * @hide
+         */
+        public static final String FP_SUCCESS_VIBRATE = "fp_success_vibrate";
+
+        /**
+         * Whether to enable or disable vibration on failed fingerprint auth
+         * @hide
+         */
+        public static final String FP_ERROR_VIBRATE = "fp_error_vibrate";
 
         /**
          * Keys we no longer back up under the current schema, but want to continue to
