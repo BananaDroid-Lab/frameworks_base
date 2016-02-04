@@ -35,6 +35,7 @@ import com.android.systemui.accessibility.data.repository.AccessibilityRepositor
 import com.android.systemui.appops.dagger.AppOpsModule;
 import com.android.systemui.assist.AssistModule;
 import com.android.systemui.authentication.AuthenticationModule;
+import com.android.systemui.banana.BananaModule;
 import com.android.systemui.biometrics.AlternateUdfpsTouchProvider;
 import com.android.systemui.biometrics.FingerprintInteractiveToAuthProvider;
 import com.android.systemui.biometrics.FingerprintReEnrollNotification;
@@ -169,6 +170,7 @@ import javax.inject.Named;
             AppOpsModule.class,
             AssistModule.class,
             AuthenticationModule.class,
+            BananaModule.class,
             BiometricsModule.class,
             BouncerViewModule.class,
             ClipboardOverlayModule.class,
