@@ -17,6 +17,7 @@
 package com.android.systemui.banana
 
 import com.android.systemui.qs.tileimpl.QSTileImpl
+import com.android.systemui.qs.tiles.SoundTile
 
 import dagger.Binds
 import dagger.Module
@@ -25,5 +26,11 @@ import dagger.multibindings.StringKey
 
 @Module
 interface BananaModule {
+
+    /** Inject SoundTile into tileMap in QSModule */
+    @Binds
+    @IntoMap
+    @StringKey(SoundTile.TILE_SPEC)
+    fun bindSoundTile(soundTile: SoundTile): QSTileImpl<*>
 
 }
