@@ -6043,6 +6043,11 @@ public final class Settings {
         public static final String BLUETOOTH_SHOW_BATTERY = "bluetooth_show_battery";
 
         /**
+         * @hide
+         */
+        public static final String LOCK_HIDE_STATUS_BAR = "lockscreen_hide_status_bar";
+
+        /**
          * Swipe to screenshot
          * @hide
          */
@@ -6967,6 +6972,7 @@ public final class Settings {
             PRIVATE_SETTINGS.add(SWIPE_TO_SCREENSHOT);
 	    PRIVATE_SETTINGS.add(OMNIJAWS_WEATHER_ICON_PACK);
             PRIVATE_SETTINGS.add(BUTTON_BACKLIGHT_ONLY_WHEN_PRESSED);
+            PRIVATE_SETTINGS.add(LOCK_HIDE_STATUS_BAR);
         }
 
         /**
