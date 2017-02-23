@@ -250,5 +250,6 @@ public class SystemSettingsValidators {
         VALIDATORS.put(System.CUSTOM_NOTIFICATION_VIBRATION_PATTERN, CUSTOM_VIBRATION_PATTERN_VALIDATOR);
         VALIDATORS.put(System.SENSOR_BLOCK, BOOLEAN_VALIDATOR);
         VALIDATORS.put(System.VOLUME_DIALOG_TIMEOUT, new InclusiveIntegerRangeValidator(1, 7));
+        VALIDATORS.put(System.LOCK_HIDE_STATUS_BAR, BOOLEAN_VALIDATOR);
     }
 }

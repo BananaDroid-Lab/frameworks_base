@@ -107,5 +107,6 @@ public class SystemSettings {
         Settings.System.CUSTOM_NOTIFICATION_VIBRATION_PATTERN,
         Settings.System.SENSOR_BLOCK,
         Settings.System.VOLUME_DIALOG_TIMEOUT,
+        Settings.System.LOCK_HIDE_STATUS_BAR,
     };
 }
