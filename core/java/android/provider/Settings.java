@@ -6001,6 +6001,12 @@ public final class Settings {
          */
         public static final String DISPLAY_ANTI_FLICKER = "display_anti_flicker";
 
+	/**
+         * Enable/disable Bluetooth Battery bar
+         * @hide
+         */
+        public static final String BLUETOOTH_SHOW_BATTERY = "bluetooth_show_battery";
+
         /**
          * Swipe to screenshot
          * @hide
