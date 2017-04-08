@@ -250,4 +250,9 @@
 
     <!-- Switch USB controller on Asus ROG devices-->
     <bool name="config_switchUsbController">false</bool>
+
+    <!-- Whether device supports sensor based doze customizations -->
+    <bool name="config_dozePulseTilt">false</bool>
+    <bool name="config_dozePulseProximity">false</bool>
+    <bool name="config_deviceHaveWakeUpProximity">false</bool>
 </resources>
