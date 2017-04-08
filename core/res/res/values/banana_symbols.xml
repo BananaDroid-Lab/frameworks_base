@@ -133,4 +133,9 @@
 
     <!-- Whether device supports in-display fingerprint -->
     <java-symbol type="bool" name="config_supportsUdfps" />
+
+    <!-- Whether device supports sensor based doze customizations -->
+    <java-symbol type="bool" name="config_dozePulseTilt" />
+    <java-symbol type="bool" name="config_dozePulseProximity" />
+    <java-symbol type="bool" name="config_deviceHaveWakeUpProximity" />
 </resources>
