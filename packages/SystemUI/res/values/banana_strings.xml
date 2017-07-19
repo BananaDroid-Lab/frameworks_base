@@ -81,6 +81,9 @@
     <!-- Name of the nfc status bar icon. -->
     <string name="status_bar_nfc">NFC</string>
 
+    <!-- Name of the volte/vowifi status bar icon. -->
+    <string name="status_bar_ims">VoLTE/VoWiFi</string>
+
     <!-- Data usage info in QS footer -->
     <string name="usage_data">used</string>
     <string name="usage_data_default_suffix">Data</string>
