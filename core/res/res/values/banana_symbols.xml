@@ -32,6 +32,7 @@
     <java-symbol type="string" name="url_copy_failed" />
 
     <!-- Leds -->
+    <java-symbol type="bool" name="config_hasNotificationLed" />
     <java-symbol type="bool" name="config_intrusiveBatteryLed" />
 
     <!-- Whether to use Richtap vibration -->
