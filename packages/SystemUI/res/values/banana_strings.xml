@@ -84,6 +84,11 @@
     <string name="accessibility_quick_settings_reading_mode_on">Reading mode on.</string>
     <string name="accessibility_quick_settings_reading_mode_off">Reading mode off.</string>
 
+    <!-- Poweroff/Reboot/Recovery QS tile -->
+    <string name="quick_settings_poweroff_label">Power off</string>
+    <string name="quick_settings_reboot_label">Reboot</string>
+    <string name="quick_settings_reboot_recovery_label">Recovery</string>
+
     <!-- Sound QS Tile -->
     <string name="quick_settings_sound_label">Sound</string>
     <string name="quick_settings_sound_ring">Ring</string>
