@@ -4566,7 +4566,7 @@ public final class NotificationPanelViewController implements ShadeSurface, Dump
                     break;
                 case STATUS_BAR_QUICK_QS_PULLDOWN:
                     mOneFingerQuickSettingsIntercept =
-                            TunerService.parseIntegerSwitch(newValue, true);
+                            TunerService.parseIntegerSwitch(newValue, false);
                     break;
                 case RETICKER_STATUS:
                     mReTickerStatus =
