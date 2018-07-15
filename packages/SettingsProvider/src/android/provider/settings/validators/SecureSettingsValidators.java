@@ -390,5 +390,6 @@ public class SecureSettingsValidators {
         VALIDATORS.put(Secure.NAVIGATION_BAR_HINT, BOOLEAN_VALIDATOR);
         VALIDATORS.put(Secure.FEATURE_TOUCH_HOVERING, BOOLEAN_VALIDATOR);
         VALIDATORS.put(Secure.LOCKSCREEN_MEDIA_METADATA, BOOLEAN_VALIDATOR);
+        VALIDATORS.put(Secure.STATUS_BAR_CLOCK, new InclusiveIntegerRangeValidator(0, 2));
     }
 }
