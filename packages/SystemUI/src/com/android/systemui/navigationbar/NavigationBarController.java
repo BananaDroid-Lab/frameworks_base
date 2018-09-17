@@ -356,6 +356,9 @@ public class NavigationBarController implements
         final Context context = isOnDefaultDisplay
                 ? mContext
                 : mContext.createDisplayContext(display);
+        if (!hasSoftNavigationBar(context, displayId)) {
+            return;
+        }
         NavigationBarComponent component = mNavigationBarComponentFactory.create(
                 context, savedState);
         NavigationBar navBar = component.getNavigationBar();
@@ -377,6 +380,12 @@ public class NavigationBarController implements
                 v.removeOnAttachStateChangeListener(this);
             }
         });
+
+        try {
+            wms.onOverlayChanged();
+        } catch (RemoteException e) {
+            // Do nothing.
+        }
     }
 
     void removeNavigationBar(int displayId) {
@@ -472,6 +481,26 @@ public class NavigationBarController implements
             return navBarView.isOverviewEnabled();
         } else {
             return mTaskbarDelegate.isOverviewEnabled();
+        }
+    }
+
+    /**
+     * @param displayId the id of display to check if there is a software navigation bar.
+     *
+     * @return whether there is a soft nav bar on specific display.
+     */
+    private boolean hasSoftNavigationBar(Context context, int displayId) {
+        if (displayId == DEFAULT_DISPLAY &&
+                Settings.System.getIntForUser(context.getContentResolver(),
+                        Settings.System.FORCE_SHOW_NAVBAR, 0,
+                        UserHandle.USER_CURRENT) == 1) {
+            return true;
+        }
+        try {
+            return WindowManagerGlobal.getWindowManagerService().hasNavigationBar(displayId);
+        } catch (RemoteException e) {
+            Log.e(TAG, "Failed to check soft navigation bar", e);
+            return false;
         }
     }
 
