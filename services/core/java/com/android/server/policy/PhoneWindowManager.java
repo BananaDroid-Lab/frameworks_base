@@ -262,6 +262,8 @@ import java.util.function.Supplier;
 
 import com.android.internal.lineage.hardware.LineageHardwareManager;
 
+import com.android.internal.lineage.hardware.LineageHardwareManager;
+
 /**
  * WindowManagerPolicy implementation for the Android phone UI.  This
  * introduces a new method suffix, Lp, for an internal lock of the
@@ -624,6 +626,8 @@ public class PhoneWindowManager implements WindowManagerPolicy {
     boolean mPendingMetaAction;
     boolean mPendingCapsLockToggle;
 
+    private int mForceNavbar = -1;
+
     // Tracks user-customisable behavior for certain key events
     private Action mBackLongPressAction;
     private Action mHomeLongPressAction;
@@ -973,6 +977,9 @@ public class PhoneWindowManager implements WindowManagerPolicy {
                     UserHandle.USER_ALL);
             resolver.registerContentObserver(Settings.System.getUriFor(
                     Settings.System.KEY_HOME_DOUBLE_TAP_ACTION), false, this,
+                    UserHandle.USER_ALL);
+            resolver.registerContentObserver(Settings.System.getUriFor(
+                    Settings.System.FORCE_SHOW_NAVBAR), false, this,
                     UserHandle.USER_ALL);
             resolver.registerContentObserver(Settings.System.getUriFor(
                     Settings.System.KEY_MENU_ACTION), false, this,
@@ -2898,6 +2905,10 @@ public class PhoneWindowManager implements WindowManagerPolicy {
     private void updateKeyAssignments() {
         int activeHardwareKeys = mDeviceHardwareKeys;
 
+        if (mForceNavbar == 1) {
+            activeHardwareKeys = 0;
+        }
+
         final boolean hasMenu = (activeHardwareKeys & KEY_MASK_MENU) != 0;
         final boolean hasAssist = (activeHardwareKeys & KEY_MASK_ASSIST) != 0;
         final boolean hasAppSwitch = (activeHardwareKeys & KEY_MASK_APP_SWITCH) != 0;
@@ -3114,6 +3125,17 @@ public class PhoneWindowManager implements WindowManagerPolicy {
             if (mWakeGestureEnabledSetting != wakeGestureEnabledSetting) {
                 mWakeGestureEnabledSetting = wakeGestureEnabledSetting;
                 updateWakeGestureListenerLp();
+            }
+
+            int forceNavbar = Settings.System.getIntForUser(resolver,
+                    Settings.System.FORCE_SHOW_NAVBAR, 0,
+                    UserHandle.USER_CURRENT);
+            if (forceNavbar != mForceNavbar) {
+                mForceNavbar = forceNavbar;
+                if (mLineageHardware.isSupported(LineageHardwareManager.FEATURE_KEY_DISABLE)) {
+                    mLineageHardware.set(LineageHardwareManager.FEATURE_KEY_DISABLE,
+                            mForceNavbar == 1);
+                }
             }
 
             updateKeyAssignments();
