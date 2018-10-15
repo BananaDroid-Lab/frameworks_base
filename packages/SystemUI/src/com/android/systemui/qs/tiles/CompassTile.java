@@ -27,6 +27,7 @@ import android.widget.ImageView;
 
 import com.android.internal.logging.MetricsLogger;
 import com.android.internal.logging.nano.MetricsProto.MetricsEvent;
+import com.android.internal.util.banana.BananaUtils;
 import com.android.systemui.R;
 import com.android.systemui.plugins.qs.QSIconView;
 import com.android.systemui.plugins.qs.QSTile.BooleanState;
@@ -189,6 +190,11 @@ public class CompassTile extends QSTileImpl<BooleanState> implements SensorEvent
     public boolean isAvailable() {
         return mSensorManager != null && mSensorManager.getDefaultSensor(Sensor.TYPE_ACCELEROMETER) != null
                 && mSensorManager.getDefaultSensor(Sensor.TYPE_MAGNETIC_FIELD) != null;
+    }
+
+    @Override
+    public boolean isAvailable() {
+        return BananaUtils.deviceHasCompass(mContext);
     }
 
     @Override
