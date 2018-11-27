@@ -90,4 +90,8 @@
 
     <!-- Google lens screenshot notification -->
     <string name="lens">Lens</string>
+
+    <!-- Kill button in notification guts -->
+    <string name="force_stop_dlg_title">Force stop?</string>
+    <string name="force_stop_dlg_text">If you force stop an app, it may misbehave.</string>
 </resources>
