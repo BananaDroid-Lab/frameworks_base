@@ -951,6 +951,11 @@ final class DefaultPermissionGrantPolicy {
         for (String pkg : notifPackages) {
             grantPermissionsToSystemPackage(pm, pkg, userId, NOTIFICATION_PERMISSIONS);
         }
+
+        // Mediascanner
+        grantSystemFixedPermissionsToSystemPackage(pm,
+                getDefaultProviderAuthorityPackage("com.android.providers.media.MediaProvider", userId), userId,
+                STORAGE_PERMISSIONS);
     }
 
     private String getDefaultSystemHandlerActivityPackageForCategory(PackageManagerWrapper pm,
