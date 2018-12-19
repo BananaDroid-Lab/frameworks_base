@@ -105,6 +105,8 @@ public class VolumeDialogImplTest extends SysuiTestCase {
     InteractionJankMonitor mInteractionJankMonitor;
     @Mock
     private DumpManager mDumpManager;
+    @Mock
+    TunerService mTunerService;
     @Mock CsdWarningDialog mCsdWarningDialog;
     @Mock
     DevicePostureController mPostureController;
@@ -145,7 +147,9 @@ public class VolumeDialogImplTest extends SysuiTestCase {
                 mCsdWarningDialogFactory,
                 mPostureController,
                 mTestableLooper.getLooper(),
-                mDumpManager);
+                mDumpManager,
+                mTunerService
+            );
         mDialog.init(0, null);
         State state = createShellState();
         mDialog.onStateChangedH(state);
