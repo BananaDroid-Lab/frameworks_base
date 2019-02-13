@@ -6357,6 +6357,16 @@ public final class Settings {
         public static final String STATUS_BAR_BRIGHTNESS_CONTROL = "status_bar_brightness_control";
 
         /**
+         * @hide
+         */
+        public static final String OMNI_KEYGUARD_SHOW_BATTERY_BAR = "sysui_keyguard_show_battery_bar";
+
+        /**
+         * @hide
+         */
+        public static final String OMNI_KEYGUARD_SHOW_BATTERY_BAR_ALWAYS = "sysui_keyguard_show_battery_bar_always";
+
+        /**
          * IMPORTANT: If you add a new public settings you also have to add it to
          * PUBLIC_SETTINGS below. If the new setting is hidden you have to add
          * it to PRIVATE_SETTINGS below. Also add a validator that can validate
@@ -6686,6 +6696,8 @@ public final class Settings {
             PRIVATE_SETTINGS.add(STATUS_BAR_SHOW_BATTERY_PERCENT);
             PRIVATE_SETTINGS.add(SWAP_VOLUME_KEYS_ON_ROTATION);
             PRIVATE_SETTINGS.add(KEY_EDGE_LONG_SWIPE_ACTION);
+            PRIVATE_SETTINGS.add(OMNI_KEYGUARD_SHOW_BATTERY_BAR);
+            PRIVATE_SETTINGS.add(OMNI_KEYGUARD_SHOW_BATTERY_BAR_ALWAYS);
         }
 
         /**
