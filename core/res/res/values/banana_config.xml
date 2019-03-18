@@ -34,4 +34,7 @@
 
     <!-- Whether device has Google Tensor SoC -->
     <bool name="config_hasTensorSoC">false</bool>
+
+    <!-- Whether or not we should show vendor mismatch message -->
+    <bool name="config_show_vendor_mismatch_message">true</bool>
 </resources>
