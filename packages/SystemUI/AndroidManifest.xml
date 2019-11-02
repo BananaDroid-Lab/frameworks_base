@@ -372,6 +372,8 @@
     <protected-broadcast android:name="com.google.android.systemui.smartspace.ENABLE_UPDATE"/>
     <protected-broadcast android:name="com.google.android.systemui.smartspace.EXPIRE_EVENT"/>
 
+    <protected-broadcast android:name="com.android.systemui.doze.pulse" />
+
     <!-- QS Tiles -->
     <uses-permission android:name="android.permission.MAINLINE_NETWORK_STACK" />
     <uses-permission android:name="android.permission.READ_SYNC_SETTINGS" />
