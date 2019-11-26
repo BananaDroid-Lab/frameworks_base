@@ -42,6 +42,7 @@ import com.android.systemui.qs.tiles.CellularTile;
 import com.android.systemui.qs.tiles.ColorCorrectionTile;
 import com.android.systemui.qs.tiles.ColorInversionTile;
 import com.android.systemui.qs.tiles.DataSaverTile;
+import com.android.systemui.qs.tiles.DataSwitchTile;
 import com.android.systemui.qs.tiles.DeviceControlsTile;
 import com.android.systemui.qs.tiles.DndTile;
 import com.android.systemui.qs.tiles.DreamTile;
@@ -145,6 +146,7 @@ public class QSFactoryImpl implements QSFactory {
     private final Provider<AntiFlickerTile> mAntiFlickerTileProvider;
     private final Provider<SmartPixelsTile> mSmartPixelsTileProvider;
     private final Provider<ScreenshotTile> mScreenshotTileProvider;
+    private final Provider<DataSwitchTile> mDataSwitchTileProvider;
 
 >>>>>>> 4df2756d7db3... base: Added screenshot tile
     private final Lazy<QSHost> mQsHostLazy;
@@ -203,7 +205,8 @@ public class QSFactoryImpl implements QSFactory {
             Provider<ReadingModeTile> readingModeTileProvider,
             Provider<AntiFlickerTile> antiFlickerTileProvider,
             Provider<SmartPixelsTile> smartPixelsTileProvider,
-            Provider<ScreenshotTile> screenshotTileProvider) {
+            Provider<ScreenshotTile> screenshotTileProvider,
+            Provider<DataSwitchTile> dataSwitchTileProvider) {
         mQsHostLazy = qsHostLazy;
         mCustomTileBuilderProvider = customTileBuilderProvider;
 
@@ -251,7 +254,11 @@ public class QSFactoryImpl implements QSFactory {
         mAntiFlickerTileProvider = antiFlickerTileProvider;
         mSmartPixelsTileProvider = smartPixelsTileProvider;
         mScreenshotTileProvider = screenshotTileProvider;
+<<<<<<< HEAD
 >>>>>>> 4df2756d7db3... base: Added screenshot tile
+=======
+        mDataSwitchTileProvider = dataSwitchTileProvider;
+>>>>>>> c760ea885902... SystemUI: Introduce DataSwitchTile
     }
 
     /** Creates a tile with a type based on {@code tileSpec} */
@@ -362,7 +369,12 @@ public class QSFactoryImpl implements QSFactory {
                 return mSmartPixelsTileProvider.get();
             case "screenshot":
                 return mScreenshotTileProvider.get();
+<<<<<<< HEAD
 >>>>>>> 4df2756d7db3... base: Added screenshot tile
+=======
+            case "dataswitch":
+                return mDataSwitchTileProvider.get();
+>>>>>>> c760ea885902... SystemUI: Introduce DataSwitchTile
         }
 
         // Custom tiles
