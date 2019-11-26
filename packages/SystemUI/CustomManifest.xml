@@ -12,4 +12,7 @@
 
     <!-- Kill button in notification guts -->
     <uses-permission android:name="android.permission.FORCE_STOP_PACKAGES" />
+
+    <!-- DataSwitch tile -->
+    <uses-permission android:name="android.permission.WRITE_APN_SETTINGS" />
 </manifest>
