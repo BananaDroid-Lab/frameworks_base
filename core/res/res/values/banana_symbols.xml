@@ -180,4 +180,7 @@
 
     <!-- Camera key type -->
     <java-symbol type="bool" name="config_singleStageCameraKey" />
+
+    <!-- Whether to use old mobile type icons as default -->
+    <java-symbol type="bool" name="config_useOldMobileIcons" />
 </resources>

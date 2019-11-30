@@ -222,4 +222,7 @@
   <!-- Indicates that the device has Single-stage Camera key
        (without "Focus" state) instead of Dual-stage. -->
   <bool name="config_singleStageCameraKey">false</bool>
+
+    <!-- Whether to use old mobile type icons as default -->
+    <bool name="config_useOldMobileIcons">false</bool>
 </resources>
