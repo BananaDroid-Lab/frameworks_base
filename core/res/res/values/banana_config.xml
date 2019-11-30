@@ -127,4 +127,7 @@
 
     <!-- Whether device supports in-display fingerprint -->
     <bool name="config_supportsUdfps">false</bool>
+
+    <!-- Whether to use old mobile type icons as default -->
+    <bool name="config_useOldMobileIcons">false</bool>
 </resources>
