@@ -239,5 +239,7 @@ public class SystemSettingsValidators {
         VALIDATORS.put(System.HIGH_TOUCH_POLLING_RATE_ENABLE, BOOLEAN_VALIDATOR);
         VALIDATORS.put(System.AUTO_BRIGHTNESS_ONE_SHOT, BOOLEAN_VALIDATOR);
         VALIDATORS.put(System.CLICK_PARTIAL_SCREENSHOT, BOOLEAN_VALIDATOR);
+        VALIDATORS.put(System.STATUS_BAR_BATTERY_STYLE, new InclusiveIntegerRangeValidator(0, 2));
+        VALIDATORS.put(System.STATUS_BAR_SHOW_BATTERY_PERCENT, new InclusiveIntegerRangeValidator(0, 2));
     }
 }
