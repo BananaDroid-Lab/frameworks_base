@@ -29,6 +29,7 @@ import android.content.Intent;
 import android.content.IntentFilter;
 import android.hardware.display.AmbientDisplayConfiguration;
 import android.os.SystemClock;
+import android.provider.Settings;
 import android.text.format.Formatter;
 import android.util.IndentingPrintWriter;
 import android.util.Log;
@@ -599,6 +600,10 @@ public class DozeTriggers implements DozeMachine.Part {
                     return;
                 }
 
+                Settings.System.putIntForUser(mContext.getContentResolver(),
+                        Settings.System.PULSE_TRIGGER_REASON, reason,
+                        mUserTracker.getUserId());
+
                 mMachine.requestPulse(reason);
             }
         }, !mDozeParameters.getProxCheckBeforePulse() || performedProxCheck, reason);
@@ -616,6 +621,7 @@ public class DozeTriggers implements DozeMachine.Part {
                 || dozeState == DozeMachine.State.DOZE_AOD_DOCKED
                 || (dozePausedOrPausing && pulsePerformedProximityCheck);
     }
+
 
     @Nullable
     private InstanceId getKeyguardSessionId() {
