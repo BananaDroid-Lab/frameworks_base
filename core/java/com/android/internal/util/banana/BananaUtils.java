@@ -131,6 +131,18 @@ public class BananaUtils {
         return isPackageInstalled(context, pkg, true);
     }
 
+    public static void killForegroundApp() {
+        final IStatusBarService service = IStatusBarService.Stub.asInterface(
+                        ServiceManager.getService("statusbar"));
+        if (service != null) {
+            try {
+                service.killForegroundApp();
+            } catch (RemoteException e) {
+                // do nothing.
+            }
+        }
+    }
+
     public static boolean deviceSupportsFlashLight(Context context) {
         CameraManager cameraManager = (CameraManager) context.getSystemService(
                 Context.CAMERA_SERVICE);
