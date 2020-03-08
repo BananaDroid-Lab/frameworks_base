@@ -113,6 +113,8 @@ public class BackAnimationController implements RemoteCallable<BackAnimationCont
     private boolean mShouldStartOnNextMoveEvent = false;
     /** @see #setTriggerBack(boolean) */
     private boolean mTriggerBack;
+    /** @see #setTriggerLongSwipe(boolean) */
+    private boolean mTriggerLongSwipe;
     private FlingAnimationUtils mFlingAnimationUtils;
 
     @Nullable
@@ -298,6 +300,12 @@ public class BackAnimationController implements RemoteCallable<BackAnimationCont
         @Override
         public void setTriggerBack(boolean triggerBack) {
             mShellExecutor.execute(() -> BackAnimationController.this.setTriggerBack(triggerBack));
+        }
+
+        @Override
+        public void setTriggerLongSwipe(boolean triggerLongSwipe) {
+            mShellExecutor.execute(
+                    () -> BackAnimationController.this.setTriggerLongSwipe(triggerLongSwipe));
         }
 
         @Override
@@ -608,6 +616,17 @@ public class BackAnimationController implements RemoteCallable<BackAnimationCont
         mTouchTracker.setTriggerBack(triggerBack);
     }
 
+    /**
+     * Sets to true when the back long swipe gesture has passed the triggering threshold,
+     * false otherwise.
+     */
+    public void setTriggerLongSwipe(boolean triggerLongSwipe) {
+        if (mPostCommitAnimationInProgress) {
+            return;
+        }
+        mTriggerLongSwipe = triggerLongSwipe;
+    }
+
     private void setSwipeThresholds(
             float linearDistance,
             float maxDistance,
@@ -670,6 +689,13 @@ public class BackAnimationController implements RemoteCallable<BackAnimationCont
             return;
         }
 
+        if (mTriggerLongSwipe) {
+            // Let key event handlers deal with back long swipe gesture
+            sendEvent(KeyEvent.ACTION_DOWN, KeyEvent.KEYCODE_BACK, KeyEvent.FLAG_LONG_SWIPE);
+            sendEvent(KeyEvent.ACTION_UP, KeyEvent.KEYCODE_BACK, KeyEvent.FLAG_LONG_SWIPE);
+            return;
+        }
+
         final int backType = mBackNavigationInfo.getType();
         final BackAnimationRunner runner = mAnimationDefinition.get(backType);
         // Simply trigger and finish back navigation when no animator defined.
@@ -688,6 +714,18 @@ public class BackAnimationController implements RemoteCallable<BackAnimationCont
             return;
         }
         startPostCommitAnimation();
+    }
+
+    private boolean sendEvent(int action, int code, int flags) {
+        long when = SystemClock.uptimeMillis();
+        final KeyEvent ev = new KeyEvent(when, when, action, code, 0 /* repeat */,
+                0 /* metaState */, KeyCharacterMap.VIRTUAL_KEYBOARD, 0 /* scancode */,
+                flags | KeyEvent.FLAG_FROM_SYSTEM | KeyEvent.FLAG_VIRTUAL_HARD_KEY,
+                InputDevice.SOURCE_KEYBOARD);
+
+        ev.setDisplayId(mContext.getDisplay().getDisplayId());
+        return InputManager.getInstance()
+                .injectInputEvent(ev, InputManager.INJECT_INPUT_EVENT_MODE_ASYNC);
     }
 
     /**
@@ -748,6 +786,7 @@ public class BackAnimationController implements RemoteCallable<BackAnimationCont
             mBackNavigationInfo = null;
         }
         mTriggerBack = false;
+        mTriggerLongSwipe = false;
     }
 
     private BackAnimationRunner getAnimationRunnerAndInit() {
