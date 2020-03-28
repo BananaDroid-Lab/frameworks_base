@@ -408,5 +408,6 @@ public class SecureSettingsValidators {
         VALIDATORS.put(Secure.STATUS_BAR_CLOCK, new InclusiveIntegerRangeValidator(0, 2));
         VALIDATORS.put(Secure.KEYBOARD_NO_NAVIGATION_BAR, BOOLEAN_VALIDATOR);
         VALIDATORS.put(Secure.QUICK_SETTINGS_TILES_VIBRATE, BOOLEAN_VALIDATOR);
+        VALIDATORS.put(Secure.FACE_UNLOCK_METHOD, BOOLEAN_VALIDATOR);
     }
 }
