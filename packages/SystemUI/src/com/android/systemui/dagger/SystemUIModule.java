@@ -34,7 +34,6 @@ import com.android.systemui.accessibility.data.repository.AccessibilityRepositor
 import com.android.systemui.appops.dagger.AppOpsModule;
 import com.android.systemui.assist.AssistModule;
 import com.android.systemui.authentication.AuthenticationModule;
-import com.android.systemui.banana.BananaModule;
 import com.android.systemui.biometrics.AlternateUdfpsTouchProvider;
 import com.android.systemui.biometrics.FingerprintInteractiveToAuthProvider;
 import com.android.systemui.biometrics.FingerprintReEnrollNotification;
@@ -77,6 +76,7 @@ import com.android.systemui.qrcodescanner.dagger.QRCodeScannerModule;
 import com.android.systemui.qs.FgsManagerController;
 import com.android.systemui.qs.FgsManagerControllerImpl;
 import com.android.systemui.qs.QSFragmentStartableModule;
+import com.android.systemui.qs.dagger.banana.BananaModule;
 import com.android.systemui.qs.footer.dagger.FooterActionsModule;
 import com.android.systemui.recents.Recents;
 import com.android.systemui.retail.dagger.RetailModeModule;
