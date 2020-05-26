@@ -414,7 +414,8 @@ public class ThemeOverlayController implements CoreStartable, Dumpable {
             FeatureFlags featureFlags,
             @Main Resources resources,
             WakefulnessLifecycle wakefulnessLifecycle,
-            UiModeManager uiModeManager) {
+            UiModeManager uiModeManager,
+            ConfigurationController configurationController) {
         mContext = context;
         mIsMonochromaticEnabled = featureFlags.isEnabled(Flags.MONOCHROMATIC_THEME);
         mIsMonetEnabled = featureFlags.isEnabled(Flags.MONET);
