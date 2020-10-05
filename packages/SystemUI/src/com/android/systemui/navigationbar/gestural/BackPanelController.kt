@@ -978,6 +978,11 @@ internal constructor(
                         MIN_DURATION_COMMITTED_ANIMATION
                     )
                 }
+
+//                vibratorHelper.cancel()
+//                    mainHandler.postDelayed(10L) {
+//                        vibratorHelper.vibrate(VIBRATE_ACTIVATED_EFFECT)
+//                    }
             }
             GestureState.CANCELLED -> {
                 val delay = max(0, MIN_DURATION_CANCELLED_ANIMATION - elapsedTimeSinceEntry)
