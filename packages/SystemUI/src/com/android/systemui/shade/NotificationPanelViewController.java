@@ -297,6 +297,8 @@ public final class NotificationPanelViewController implements ShadeSurface, Dump
             "system:" + Settings.System.RETICKER_STATUS;
     private static final String RETICKER_COLORED =
             "system:" + Settings.System.RETICKER_COLORED;
+    private static final String NOTIFICATION_MATERIAL_DISMISS =
+            "system:" + Settings.System.NOTIFICATION_MATERIAL_DISMISS;
 
     private static final String DOUBLE_TAP_SLEEP_GESTURE =
             "system:" + Settings.System.DOUBLE_TAP_SLEEP_GESTURE;
@@ -651,6 +653,8 @@ public final class NotificationPanelViewController implements ShadeSurface, Dump
     private int mLockscreenToOccludedTransitionTranslationY;
 
     private boolean mBlockedGesturalNavigation = false;
+
+    private boolean mShowDimissButton;
 
     private final Runnable mFlingCollapseRunnable = () -> fling(0, false /* expand */,
             mNextCollapseSpeedUpFactor, false /* expandBecauseOfFalsing */);
@@ -2990,7 +2994,7 @@ public final class NotificationPanelViewController implements ShadeSurface, Dump
     }
 
     private boolean isPanelVisibleBecauseOfHeadsUp() {
-        return (mHeadsUpManager.hasPinnedHeadsUp() || mHeadsUpAnimatingAway)
+        return mHeadsUpManager != null && (mHeadsUpManager.hasPinnedHeadsUp() || mHeadsUpAnimatingAway)
                 && mBarState == StatusBarState.SHADE;
     }
 
@@ -3876,7 +3880,7 @@ public final class NotificationPanelViewController implements ShadeSurface, Dump
         return mExpandedHeight;
     }
 
-    float getExpandedFraction() {
+    public float getExpandedFraction() {
         return mExpandedFraction;
     }
 
@@ -4519,6 +4523,7 @@ public final class NotificationPanelViewController implements ShadeSurface, Dump
             mTunerService.addTunable(this, DOUBLE_TAP_SLEEP_GESTURE);
             mTunerService.addTunable(this, RETICKER_STATUS);
             mTunerService.addTunable(this, RETICKER_COLORED);
+            mTunerService.addTunable(this, NOTIFICATION_MATERIAL_DISMISS);
             // Theme might have changed between inflating this view and attaching it to the
             // window, so
             // force a call to onThemeChanged
@@ -4555,6 +4560,11 @@ public final class NotificationPanelViewController implements ShadeSurface, Dump
                 case RETICKER_COLORED:
                     mReTickerColored =
                             TunerService.parseIntegerSwitch(newValue, false);
+                    break;
+                case NOTIFICATION_MATERIAL_DISMISS:
+                    mShowDimissButton =
+                            TunerService.parseIntegerSwitch(newValue, false);
+                    updateDismissAllVisibility();
                     break;
                 default:
                     break;
@@ -5162,6 +5172,17 @@ public final class NotificationPanelViewController implements ShadeSurface, Dump
         @Override
         public void clearNotificationEffects() {
             mCentralSurfaces.clearNotificationEffects();
+        }
+    }
+
+    public void updateDismissAllVisibility() {
+        if (mCentralSurfaces == null) return;
+
+        if (mShowDimissButton && mBarState != StatusBarState.KEYGUARD && !isFullyCollapsed()
+                && !isPanelVisibleBecauseOfHeadsUp()) {
+            mCentralSurfaces.updateDismissAllVisibility(true);
+        } else {
+            mCentralSurfaces.updateDismissAllVisibility(false);
         }
     }
 
