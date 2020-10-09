@@ -480,4 +480,10 @@ public interface CentralSurfaces extends Dumpable, LifecycleOwner {
      */
     ActivityLaunchAnimator.Controller getAnimatorControllerFromNotification(
             ExpandableNotificationRow associatedView);
+
+    View getDismissAllButton();
+
+    void updateDismissAllVisibility(boolean visible);
+
+    void updateDismissAllButton();
 }
