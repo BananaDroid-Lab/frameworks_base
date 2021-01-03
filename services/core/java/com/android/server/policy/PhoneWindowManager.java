@@ -261,6 +261,7 @@ import java.util.List;
 import java.util.Set;
 import java.util.function.Supplier;
 
+import com.android.internal.lineage.hardware.LineageHardwareManager;
 import com.android.internal.util.custom.NavbarUtils;
 
 /**
@@ -763,6 +764,7 @@ public class PhoneWindowManager implements WindowManagerPolicy {
     private PendingIntent mTorchOffPendingIntent;
 
     private boolean mLongSwipeDown;
+    private LineageHardwareManager mLineageHardware;
 
     private class PolicyHandler extends Handler {
         @Override
@@ -982,6 +984,11 @@ public class PhoneWindowManager implements WindowManagerPolicy {
             resolver.registerContentObserver(Settings.System.getUriFor(
                     Settings.System.KEY_EDGE_LONG_SWIPE_ACTION), false, this,
                     UserHandle.USER_ALL);
+            if (mLineageHardware.isSupported(LineageHardwareManager.FEATURE_KEY_SWAP)) {
+                resolver.registerContentObserver(Settings.Secure.getUriFor(
+                        Settings.Secure.SWAP_CAPACITIVE_KEYS), false, this,
+                        UserHandle.USER_ALL);
+            }
             updateSettings();
         }
 
@@ -3175,6 +3182,16 @@ public class PhoneWindowManager implements WindowManagerPolicy {
         if (updateRotation) {
             updateRotation(true);
         }
+        updateKeySwapper();
+    }
+
+    private void updateKeySwapper(){
+        if (!mLineageHardware.isSupported(LineageHardwareManager.FEATURE_KEY_SWAP)) {
+            return;
+        }
+        final boolean enabled = Settings.Secure.getInt(mContext.getContentResolver(),
+                Settings.Secure.SWAP_CAPACITIVE_KEYS, 0) == 1;
+        mLineageHardware.set(LineageHardwareManager.FEATURE_KEY_SWAP, enabled);
     }
 
     private DreamManagerInternal getDreamManagerInternal() {
