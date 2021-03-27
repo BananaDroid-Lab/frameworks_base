@@ -39,5 +39,5 @@
     <dimen name="status_bar_battery_icon_width_landscape_ios16">24.0dip</dimen>
 
     <!-- AoD battery bar -->
-    <dimen name="battery_bar_view_height">6dp</dimen>
+    <dimen name="battery_bar_view_height">4dp</dimen>
 </resources>
