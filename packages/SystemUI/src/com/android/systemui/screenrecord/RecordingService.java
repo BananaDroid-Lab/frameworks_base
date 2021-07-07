@@ -293,6 +293,11 @@ public class RecordingService extends Service implements ScreenMediaRecorderList
                     mController.createScreenRecordDialog(this, null, null, null, null).show();
                 }
                 break;
+            case ACTION_SHOW_DIALOG:
+                if (mController != null) {
+                    mController.createScreenRecordDialog(this, null, null, null, null).show();
+                }
+                break;
         }
         return Service.START_STICKY;
     }
