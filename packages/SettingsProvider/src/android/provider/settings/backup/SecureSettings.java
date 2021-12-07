@@ -243,6 +243,7 @@ public class SecureSettings {
         Settings.Secure.ACCESSIBILITY_FONT_SCALING_HAS_BEEN_CHANGED,
         Settings.Secure.DOZE_ON_CHARGE,
         Settings.Secure.TETHERING_ALLOW_VPN_UPSTREAMS,
-        Settings.Secure.QUICK_SETTINGS_TILES_VIBRATE
+        Settings.Secure.QUICK_SETTINGS_TILES_VIBRATE,
+        Settings.Secure.GESTURE_NAVBAR_LENGTH_MODE,
     };
 }
