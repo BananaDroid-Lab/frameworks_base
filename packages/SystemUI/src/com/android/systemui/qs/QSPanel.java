@@ -733,6 +733,7 @@ public class QSPanel extends LinearLayout implements Tunable {
                 updateColumns();
             }
             updateMargins(mediaHostView);
+            if (mHorizontalLinearLayout == null) return;
             mHorizontalLinearLayout.setVisibility(horizontal ? View.VISIBLE : View.GONE);
         }
     }
