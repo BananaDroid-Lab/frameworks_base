@@ -52,4 +52,7 @@
     <!-- Island notification -->
     <dimen name="island_icon_size">36dp</dimen>
     <dimen name="island_side_margin">12dp</dimen>
+
+    <!-- FPS Info tile -->
+    <dimen name="fps_info_text_padding">4dp</dimen>
 </resources>
