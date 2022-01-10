@@ -108,6 +108,8 @@ public class NavigationBarView extends FrameLayout implements
             "system:" + Settings.System.NAVBAR_STYLE;
     private static final String NAVIGATION_BAR_MENU_ARROW_KEYS =
             "customsystem:" + Settings.System.NAVIGATION_BAR_MENU_ARROW_KEYS;
+    private static final String ENABLE_FLOATING_ROTATION_BUTTON =
+            "system:" + Settings.System.ENABLE_FLOATING_ROTATION_BUTTON;
 
     final static boolean ALTERNATE_CAR_MODE_UI = false;
 
@@ -155,6 +157,7 @@ public class NavigationBarView extends FrameLayout implements
     private boolean mInCarMode = false;
     private boolean mDockedStackExists;
     private boolean mScreenOn = true;
+    private boolean mIsUserEnabled = true;
 
     private final SparseArray<ButtonDispatcher> mButtonDispatchers = new SparseArray<>();
     private final ContextualButtonGroup mContextualButtonGroup;
@@ -614,6 +617,7 @@ public class NavigationBarView extends FrameLayout implements
             mTransitionListener.onBackAltCleared();
         }
         mImeVisible = visible;
+        mRotationButtonController.getRotationButton().setCanShowRotationButton(mIsUserEnabled);
     }
 
     void setDisabledFlags(int disabledFlags, SysUiState sysUiState) {
@@ -1167,6 +1171,7 @@ public class NavigationBarView extends FrameLayout implements
         final TunerService tunerService = Dependency.get(TunerService.class);
         tunerService.addTunable(this, NAVBAR_STYLE);
         tunerService.addTunable(this, NAVIGATION_BAR_MENU_ARROW_KEYS);
+        tunerService.addTunable(this, ENABLE_FLOATING_ROTATION_BUTTON);
         if (mRotationButtonController != null) {
             mRotationButtonController.registerListeners(false /* registerRotationWatcher */);
         }
@@ -1193,6 +1198,11 @@ public class NavigationBarView extends FrameLayout implements
         } else if (NAVIGATION_BAR_MENU_ARROW_KEYS.equals(key)) {
             mShowCursorKeys = TunerService.parseIntegerSwitch(newValue, false);
             setNavigationIconHints(mNavigationIconHints);
+        } else if (ENABLE_FLOATING_ROTATION_BUTTON.equals(key)) {
+            mIsUserEnabled = TunerService.parseIntegerSwitch(newValue, true);
+            if (mRotationButtonController == null) return;
+            mRotationButtonController.getRotationButton().setCanShowRotationButton(
+                    !mImeVisible && mIsUserEnabled);
         }
     }
 
