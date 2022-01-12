@@ -34,7 +34,9 @@ import android.content.Context;
 import android.content.Intent;
 import android.content.IntentFilter;
 import android.content.om.FabricatedOverlay;
+import android.content.om.IOverlayManager;
 import android.content.om.OverlayIdentifier;
+import android.content.om.OverlayInfo;
 import android.content.pm.UserInfo;
 import android.content.res.Configuration;
 import android.content.res.Resources;
@@ -42,6 +44,8 @@ import android.database.ContentObserver;
 import android.graphics.Color;
 import android.net.Uri;
 import android.os.Handler;
+import android.os.RemoteException;
+import android.os.ServiceManager;
 import android.os.UserHandle;
 import android.os.UserManager;
 import android.provider.Settings;
@@ -119,6 +123,8 @@ public class ThemeOverlayController implements CoreStartable, Dumpable, TunerSer
     protected static final int NEUTRAL = 0;
     protected static final int ACCENT = 1;
 
+    private static final String DARK_OVERLAY_NAME = "com.android.dark_bg";
+
     private final ThemeOverlayApplier mThemeManager;
     private final UserManager mUserManager;
     private final BroadcastDispatcher mBroadcastDispatcher;
@@ -156,6 +162,8 @@ public class ThemeOverlayController implements CoreStartable, Dumpable, TunerSer
     private final SparseIntArray mDeferredWallpaperColorsFlags = new SparseIntArray();
     private final WakefulnessLifecycle mWakefulnessLifecycle;
     private final TunerService mTunerService;
+
+    private IOverlayManager mOverlayManager;
 
     // Defers changing themes until Setup Wizard is done.
     private boolean mDeferredThemeEvaluation;
@@ -423,6 +431,9 @@ public class ThemeOverlayController implements CoreStartable, Dumpable, TunerSer
         mWakefulnessLifecycle = wakefulnessLifecycle;
         mTunerService = tunerService;
         dumpManager.registerDumpable(TAG, this);
+
+        mOverlayManager = IOverlayManager.Stub.asInterface(
+                ServiceManager.getService(Context.OVERLAY_SERVICE));
     }
 
     @Override
@@ -890,10 +901,24 @@ public class ThemeOverlayController implements CoreStartable, Dumpable, TunerSer
             }
         }
 
+        boolean nightMode = (mResources.getConfiguration().uiMode
+                & Configuration.UI_MODE_NIGHT_MASK) == Configuration.UI_MODE_NIGHT_YES;
+        boolean skipNeutral = false;
+        if (mOverlayManager != null && nightMode) {
+            OverlayInfo info = null;
+            try {
+                info = mOverlayManager.getOverlayInfo(DARK_OVERLAY_NAME, mUserTracker.getUserId());
+            } catch (RemoteException e) {
+                Log.e(TAG, "Failed getting overlay " + DARK_OVERLAY_NAME + " info");
+                e.printStackTrace();
+            }
+            skipNeutral = info != null && info.isEnabled();
+        }
+
         // Compatibility with legacy themes, where full packages were defined, instead of just
         // colors.
         if (!categoryToPackage.containsKey(OVERLAY_CATEGORY_SYSTEM_PALETTE)
-                && mNeutralOverlay != null) {
+                && mNeutralOverlay != null && !skipNeutral) {
             categoryToPackage.put(OVERLAY_CATEGORY_SYSTEM_PALETTE,
                     mNeutralOverlay.getIdentifier());
         }
@@ -914,11 +939,17 @@ public class ThemeOverlayController implements CoreStartable, Dumpable, TunerSer
                     .map(key -> key + " -> " + categoryToPackage.get(key)).collect(
                             Collectors.joining(", ")));
         }
+
+        nightMode = (mContext.getResources().getConfiguration().uiMode
+                & Configuration.UI_MODE_NIGHT_MASK) == Configuration.UI_MODE_NIGHT_YES;
+
         if (mNeedsOverlayCreation) {
             mNeedsOverlayCreation = false;
-            mThemeManager.applyCurrentUserOverlays(categoryToPackage, new FabricatedOverlay[]{
-                    mSecondaryOverlay, mNeutralOverlay
-            }, currentUser, managedProfiles);
+            FabricatedOverlay[] fOverlay = new FabricatedOverlay[skipNeutral ? 1 : 2];
+            fOverlay[0] = mSecondaryOverlay;
+            if (!skipNeutral) fOverlay[1] = mNeutralOverlay;
+            mThemeManager.applyCurrentUserOverlays(categoryToPackage, fOverlay,
+                    currentUser, managedProfiles);
         } else {
             mThemeManager.applyCurrentUserOverlays(categoryToPackage, null, currentUser,
                     managedProfiles);
