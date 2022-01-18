@@ -281,6 +281,7 @@ import com.android.server.statusbar.StatusBarManagerInternal;
 import com.android.server.uri.NeededUriGrants;
 import com.android.server.uri.UriGrantsManagerInternal;
 import com.android.server.wallpaper.WallpaperManagerInternal;
+import com.android.internal.util.banana.cutout.CutoutFullscreenController;
 
 import java.io.BufferedReader;
 import java.io.File;
@@ -793,6 +794,8 @@ public class ActivityTaskManagerService extends IActivityTaskManager.Stub {
     private Set<Integer> mProfileOwnerUids = new ArraySet<Integer>();
 
     private SystemSensorManager mSystemSensorManager;
+
+    private CutoutFullscreenController mCutoutFullscreenController;
 
     private final class SettingObserver extends ContentObserver {
         private final Uri mFontScaleUri = Settings.System.getUriFor(FONT_SCALE);
@@ -7193,6 +7196,12 @@ public class ActivityTaskManagerService extends IActivityTaskManager.Stub {
                 final ActivityRecord r = ActivityRecord.isInRootTaskLocked(activityToken);
                 return r != null && r.isInterestingToUserLocked();
             }
+        }
+    }
+
+    public boolean shouldForceCutoutFullscreen(String packageName) {
+        synchronized (this) {
+            return mCutoutFullscreenController.shouldForceCutoutFullscreen(packageName);
         }
     }
 }
