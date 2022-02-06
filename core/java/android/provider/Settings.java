@@ -6890,6 +6890,7 @@ public final class Settings {
          * Sensor block per-package
          * @hide
          */
+        @Readable
         public static final String SENSOR_BLOCK = "sensor_block";
 
         /**
