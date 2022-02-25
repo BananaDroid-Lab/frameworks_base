@@ -6552,6 +6552,12 @@ public final class Settings {
         public static final String CHARGING_CONTROL_LIMIT = "charging_control_charging_limit";
 
         /**
+         * Whether to show data usage in qs footer
+         * @hide
+         */
+        public static final String QS_FOOTER_DATA_USAGE = "qs_footer_data_usage";
+
+        /**
          * Keys we no longer back up under the current schema, but want to continue to
          * process when restoring historical backup datasets.
          *
