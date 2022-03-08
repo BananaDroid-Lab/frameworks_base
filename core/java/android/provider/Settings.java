@@ -6821,6 +6821,12 @@ public final class Settings {
         public static final String AUTH_RIPPLE_ENABLED = "auth_ripple_enabled";
 
         /**
+         * Navbar style
+         * @hide
+         */
+        public static final String NAVBAR_STYLE = "navbar_style";
+
+        /**
          * Keys we no longer back up under the current schema, but want to continue to
          * process when restoring historical backup datasets.
          *
