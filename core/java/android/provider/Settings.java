@@ -6105,6 +6105,11 @@ public final class Settings {
         public static final String POWERMENU_EMERGENCY = "powermenu_emergency";
 
         /**
+         * @hide
+         */
+        public static final String ENABLE_TASKBAR = "enable_taskbar";
+
+        /**
          * Network traffic indicator location
          * 0 = Disabled
          * 1 = Statusbar
