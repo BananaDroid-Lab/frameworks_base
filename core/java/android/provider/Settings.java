@@ -6903,6 +6903,11 @@ public final class Settings {
         public static final String VOLBTN_MUSIC_CONTROLS = "volbtn_music_controls";
 
         /**
+         * @hide
+         */
+        public static final String ENABLE_TASKBAR = "enable_taskbar";
+
+        /**
          * Keys we no longer back up under the current schema, but want to continue to
          * process when restoring historical backup datasets.
          *
