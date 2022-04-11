@@ -5593,6 +5593,11 @@ public final class Settings {
         public static final String POWERMENU_EMERGENCY = "powermenu_emergency";
 
         /**
+         * @hide
+         */
+        public static final String ENABLE_TASKBAR = "enable_taskbar";
+
+        /**
          * Enable statusbar double tap gesture to put device to sleep
          * @hide
          */
