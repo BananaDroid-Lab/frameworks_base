@@ -5265,7 +5265,7 @@ public final class NotificationPanelViewController implements Dumpable {
             StatusBarNotification sbn = mHeadsUpManager.getTopEntry().getRow().getEntry().getSbn();
             Notification notification = sbn.getNotification();
             String pkgname = sbn.getPackageName();
-
+            if (mCentralSurfaces != null) mCentralSurfaces.updateDismissAllVisibility(false);
             Drawable icon = null;
             try {
                 if ("com.android.systemui".equals(pkgname)) {
