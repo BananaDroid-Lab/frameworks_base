@@ -1131,8 +1131,10 @@ public class DownloadManager {
             return -1;
         }
 
-        long id = Long.parseLong(downloadUri.getLastPathSegment());
-        return id;
+        if (downloadUri == null) {
+            return -1;
+        }
+        return Long.parseLong(downloadUri.getLastPathSegment());
     }
 
     /**
