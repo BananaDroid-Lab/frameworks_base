@@ -22,9 +22,14 @@ import static com.android.systemui.qs.dagger.QSScopeModule.QS_USING_MEDIA_PLAYER
 
 import androidx.annotation.VisibleForTesting;
 
+import android.os.Handler;
+import android.os.UserHandle;
+import android.provider.Settings;
+
 import com.android.internal.logging.MetricsLogger;
 import com.android.internal.logging.UiEventLogger;
 import com.android.systemui.dump.DumpManager;
+import com.android.systemui.dagger.qualifiers.Main;
 import com.android.systemui.media.controls.ui.MediaHierarchyManager;
 import com.android.systemui.media.controls.ui.MediaHost;
 import com.android.systemui.plugins.qs.QSTile;
@@ -39,6 +44,7 @@ import com.android.systemui.settings.brightness.BrightnessMirrorHandler;
 import com.android.systemui.settings.brightness.BrightnessSliderController;
 import com.android.systemui.statusbar.policy.BrightnessMirrorController;
 import com.android.systemui.tuner.TunerService;
+import com.android.systemui.util.settings.SystemSettings;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -67,12 +73,14 @@ public class QuickQSPanelController extends QSPanelControllerBase<QuickQSPanel> 
                     Provider<Boolean> usingCollapsedLandscapeMediaProvider,
             MetricsLogger metricsLogger, UiEventLogger uiEventLogger, QSLogger qsLogger,
             DumpManager dumpManager, SplitShadeStateController splitShadeStateController,
+            @Main Handler mainHandler,
+            SystemSettings systemSettings,
             TunerService tunerService,
             BrightnessController.Factory brightnessControllerFactory,
             BrightnessSliderController.Factory brightnessSliderFactory
     ) {
         super(view, qsHost, qsCustomizerController, usingMediaPlayer, mediaHost, metricsLogger,
-                uiEventLogger, qsLogger, dumpManager, splitShadeStateController);
+                uiEventLogger, qsLogger, dumpManager, splitShadeStateController, mainHandler, systemSettings);
         mUsingCollapsedLandscapeMediaProvider = usingCollapsedLandscapeMediaProvider;
         mTunerService = tunerService;
 
