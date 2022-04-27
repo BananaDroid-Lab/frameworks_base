@@ -102,5 +102,7 @@ public class SystemSettings {
         Settings.System.SCREEN_FLASH_NOTIFICATION_COLOR,
         Settings.System.MEDIA_ARTWORK_BLUR_ENABLED,
         Settings.System.MEDIA_ARTWORK_BLUR_RADIUS,
+        Settings.System.QS_TILE_LABEL_HIDE,
+        Settings.System.QS_TILE_VERTICAL_LAYOUT,
     };
 }
