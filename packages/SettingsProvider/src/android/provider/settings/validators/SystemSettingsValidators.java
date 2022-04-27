@@ -282,5 +282,7 @@ public class SystemSettingsValidators {
         VALIDATORS.put(System.MEDIA_ARTWORK_BLUR_ENABLED, BOOLEAN_VALIDATOR);
         VALIDATORS.put(System.MEDIA_ARTWORK_BLUR_RADIUS, new InclusiveFloatRangeValidator(5f, 125f));
         VALIDATORS.put(System.STATUS_BAR_QUICK_QS_PULLDOWN, new InclusiveIntegerRangeValidator(0, 2));
+        VALIDATORS.put(System.QS_TILE_LABEL_HIDE, BOOLEAN_VALIDATOR);
+        VALIDATORS.put(System.QS_TILE_VERTICAL_LAYOUT, BOOLEAN_VALIDATOR);
     }
 }
