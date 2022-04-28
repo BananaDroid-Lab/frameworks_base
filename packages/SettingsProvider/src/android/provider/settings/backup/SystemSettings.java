@@ -91,5 +91,7 @@ public class SystemSettings {
         Settings.System.MEDIA_ARTWORK_BLUR_RADIUS,
         Settings.System.QS_TILE_LABEL_HIDE,
         Settings.System.QS_TILE_VERTICAL_LAYOUT,
+        Settings.System.QS_LAYOUT,
+        Settings.System.QQS_LAYOUT,
     };
 }
