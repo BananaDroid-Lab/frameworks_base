@@ -314,6 +314,8 @@ public class CentralSurfacesImpl implements CoreStartable, CentralSurfaces, Tune
 
     private static final String STATUS_BAR_BRIGHTNESS_CONTROL =
             "system:" + Settings.System.STATUS_BAR_BRIGHTNESS_CONTROL;
+    private static final String QS_TRANSPARENCY =
+            "system:" + Settings.System.QS_TRANSPARENCY;
 
     private static final int MSG_OPEN_SETTINGS_PANEL = 1002;
     private static final int MSG_LAUNCH_TRANSITION_TIMEOUT = 1003;
@@ -1020,6 +1022,7 @@ public class CentralSurfacesImpl implements CoreStartable, CentralSurfaces, Tune
         mTunerService.addTunable(this, FORCE_SHOW_NAVBAR);
         mTunerService.addTunable(this, STATUS_BAR_BRIGHTNESS_CONTROL);
         mTunerService.addTunable(this, PULSE_ON_NEW_TRACKS);
+        mTunerService.addTunable(this, QS_TRANSPARENCY);
 
         mWindowManager = (WindowManager) mContext.getSystemService(Context.WINDOW_SERVICE);
 
@@ -3664,6 +3667,10 @@ public class CentralSurfacesImpl implements CoreStartable, CentralSurfaces, Tune
                 if (KeyguardSliceProvider.getAttachedInstance() != null) {
                     KeyguardSliceProvider.getAttachedInstance().setPulseOnNewTracks(pulseOnNewTracks);
                 }
+                break;
+            case QS_TRANSPARENCY:
+                mScrimController.setCustomScrimAlpha(
+                        TunerService.parseInteger(newValue, 100));
                 break;
             default:
                 break;
