@@ -110,5 +110,6 @@ public class SystemSettings {
         Settings.System.LOCK_HIDE_STATUS_BAR,
         Settings.System.NAVIGATION_BAR_IME_SPACE,
         Settings.System.MAX_VISIBLE_NOTIFICATION_ICONS,
+        Settings.System.QS_PANEL_STYLE,
     };
 }
