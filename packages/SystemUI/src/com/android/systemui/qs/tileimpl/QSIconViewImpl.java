@@ -48,7 +48,7 @@ import java.util.Random;
 
 public class QSIconViewImpl extends QSIconView {
 
-    public static final long QS_ANIM_LENGTH = 350;
+    public static final long QS_ANIM_LENGTH = 450;
 
     protected final View mIcon;
     protected int mIconSizePx;
