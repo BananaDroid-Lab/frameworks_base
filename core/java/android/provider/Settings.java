@@ -5847,6 +5847,12 @@ public final class Settings {
 	public static final String LAUNCHER_SHOW_WEATHER_TEMP = "launcher_show_weather_temp";
 
         /**
+         * Enable/Disable screenshot sound
+         * @hide
+         */
+        public static final String SCREENSHOT_SHUTTER_SOUND = "screenshot_shutter_sound";
+
+        /**
          * Keys we no longer back up under the current schema, but want to continue to
          * process when restoring historical backup datasets.
          *
