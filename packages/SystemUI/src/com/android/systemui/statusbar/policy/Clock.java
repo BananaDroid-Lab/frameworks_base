@@ -104,6 +104,10 @@ public class Clock extends TextView implements
             "system:" + Settings.System.STATUS_BAR_CLOCK_AUTO_HIDE_HDURATION;
     public static final String STATUS_BAR_CLOCK_AUTO_HIDE_SDURATION =
             "system:" + Settings.System.STATUS_BAR_CLOCK_AUTO_HIDE_SDURATION;
+    public static final String STATUS_BAR_CLOCK_SIZE =
+            "system:" + Settings.System.STATUS_BAR_CLOCK_SIZE;
+
+    private int mClockSize;
 
     private final UserTracker mUserTracker;
     private final CommandQueue mCommandQueue;
@@ -265,7 +269,8 @@ public class Clock extends TextView implements
                     STATUS_BAR_CLOCK_DATE_FORMAT,
                     STATUS_BAR_CLOCK_AUTO_HIDE,
                     STATUS_BAR_CLOCK_AUTO_HIDE_HDURATION,
-                    STATUS_BAR_CLOCK_AUTO_HIDE_SDURATION);
+                    STATUS_BAR_CLOCK_AUTO_HIDE_SDURATION,
+                    STATUS_BAR_CLOCK_SIZE);
             mCommandQueue.addCallback(this);
             if (mShowDark) {
                 Dependency.get(DarkIconDispatcher.class).addDarkReceiver(this);
@@ -281,6 +286,7 @@ public class Clock extends TextView implements
 
         // Make sure we update to the current time
         updateShowSeconds();
+        updateClockSize();
         updateClock();
         updateClockVisibility();
     }
@@ -497,6 +503,11 @@ public class Clock extends TextView implements
             case STATUS_BAR_CLOCK_AUTO_HIDE_SDURATION:
                 mShowDuration =
                         TunerService.parseInteger(newValue, SHOW_DURATION);
+                break;
+            case STATUS_BAR_CLOCK_SIZE:
+                mClockSize =
+                        TunerService.parseInteger(newValue, 14);
+                updateClockSize();
                 break;
             default:
                 break;
@@ -769,5 +780,8 @@ public class Clock extends TextView implements
             updateShowClock();
         }
     };
-}
 
+    public void updateClockSize() {
+        setTextSize(mClockSize);
+    }
+}
