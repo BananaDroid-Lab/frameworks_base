@@ -87,7 +87,7 @@ public class QSPanelController extends QSPanelControllerBase<QSPanel> {
             StatusBarKeyguardViewManager statusBarKeyguardViewManager,
             @Main Handler mainHandler, SystemSettings systemSettings) {
         super(view, qsHost, qsCustomizerController, usingMediaPlayer, mediaHost,
-                metricsLogger, uiEventLogger, qsLogger, dumpManager,
+                metricsLogger, uiEventLogger, qsLogger, dumpManager, tunerService,
                 mainHandler, systemSettings);
         mTunerService = tunerService;
         mQsCustomizerController = qsCustomizerController;
