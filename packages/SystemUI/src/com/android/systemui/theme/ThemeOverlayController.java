@@ -450,10 +450,6 @@ public class ThemeOverlayController implements CoreStartable, Dumpable {
                 },
                 UserHandle.USER_ALL);
 
-        if (!mIsMonetEnabled) {
-            return;
-        }
-
         mSystemSettings.registerContentObserverForUser(
                 Settings.System.getUriFor(Settings.System.STATUS_BAR_BATTERY_STYLE),
                 false,
