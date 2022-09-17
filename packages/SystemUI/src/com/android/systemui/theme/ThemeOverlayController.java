@@ -482,10 +482,6 @@ public class ThemeOverlayController implements CoreStartable, Dumpable, TunerSer
             reevaluateSystemTheme(true /* forceReload */);
         });
 
-        if (!mIsMonetEnabled) {
-            return;
-        }
-
         mSecureSettings.registerContentObserverForUser(
                 Settings.Secure.getUriFor(Settings.Secure.SYSTEM_CUSTOM_THEME),
                 false,
