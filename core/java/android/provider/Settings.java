@@ -13228,6 +13228,12 @@ public final class Settings {
         public static final String SYSTEM_BLACK_THEME = "system_black_theme";
 
         /**
+         * Switch to change custom system theme
+         * @hide
+         */
+        public static final String SYSTEM_CUSTOM_THEME = "system_custom_theme";
+
+        /**
          * These entries are considered common between the personal and the managed profile,
          * since the managed profile doesn't get to change them.
          */
