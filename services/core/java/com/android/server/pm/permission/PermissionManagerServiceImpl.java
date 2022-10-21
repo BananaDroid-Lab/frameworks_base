@@ -183,6 +183,12 @@ public class PermissionManagerServiceImpl implements PermissionManagerServiceInt
     Set<String> GOOGLEAUTOHASH = new ArraySet<>(Arrays.asList("FDB00C43DBDE8B51CB312AA81D3B5FA17713ADB94B28F598D77F8EB89DACEEDF"));
 
 
+    /** Define allowed permissions for Android Auto */
+    private ArrayList<String> androidAutoPerms = new ArrayList<String>(
+    Arrays.asList("android.permission.MODIFY_AUDIO_ROUTING", "android.permission.REAL_GET_TASKS", "android.permission.LOCAL_MAC_ADDRESS", "android.permission.MANAGE_USB", "android.permission.MANAGE_USERS", "android.permission.BLUETOOTH_PRIVILEGED", "android.permission.TOGGLE_AUTOMOTIVE_PROJECTION", "android.permission.READ_PHONE_NUMBERS", "android.permission.REQUEST_COMPANION_SELF_MANAGED", "android.permission.ACTIVITY_EMBEDDING", "android.permission.CALL_PRIVILEGED", "android.permission.CHANGE_COMPONENT_ENABLED_STATE", "android.permission.COMPANION_APPROVE_WIFI_CONNECTIONS", "android.permission.CONTROL_INCALL_EXPERIENCE", "android.permission.DUMP", "android.permission.LOCATION_HARDWARE", "android.permission.ENTER_CAR_MODE_PRIORITIZED", "android.permission.MODIFY_DAY_NIGHT_MODE", "android.permission.READ_PRIVILEGED_PHONE_STATE", "android.permission.START_ACTIVITIES_FROM_BACKGROUND", "android.permission.UPDATE_APP_OPS_STATS"));
+    Set<String> GOOGLEAUTOHASH = new ArraySet<>(Arrays.asList("FDB00C43DBDE8B51CB312AA81D3B5FA17713ADB94B28F598D77F8EB89DACEEDF"));
+
+
     private static final long BACKUP_TIMEOUT_MILLIS = SECONDS.toMillis(60);
 
     /** Cap the size of permission trees that 3rd party apps can define; in characters of text */
