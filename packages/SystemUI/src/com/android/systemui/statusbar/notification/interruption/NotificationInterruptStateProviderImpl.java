@@ -414,8 +414,6 @@ public class NotificationInterruptStateProviderImpl implements NotificationInter
         }
     }
     private boolean shouldHeadsUpWhenAwake(NotificationEntry entry, boolean log) {
-        StatusBarNotification sbn = entry.getSbn();
-
         if (!mUseHeadsUp) {
             if (log) mLogger.logNoHeadsUpFeatureDisabled();
             return false;
@@ -433,7 +431,7 @@ public class NotificationInterruptStateProviderImpl implements NotificationInter
             return false;
         }
 
-        final boolean isSnoozedPackage = isSnoozedPackage(sbn);
+        final boolean isSnoozedPackage = isSnoozedPackage(entry);
         final boolean fsiRequiresKeyguard = mFlags.fullScreenIntentRequiresKeyguard();
         final boolean hasFsi = sbn.getNotification().fullScreenIntent != null;
 
@@ -637,8 +635,8 @@ public class NotificationInterruptStateProviderImpl implements NotificationInter
         return true;
     }
 
-    private boolean isSnoozedPackage(StatusBarNotification sbn) {
-        return mHeadsUpManager.isSnoozed(sbn.getPackageName());
+    private boolean isSnoozedPackage(NotificationEntry entry) {
+        return mHeadsUpManager.isSnoozed(entry.getSbn().getPackageName());
     }
 
     private boolean shouldSuppressHeadsUpWhenAwakeForOldWhen(NotificationEntry entry, boolean log) {
