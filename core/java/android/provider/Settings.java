@@ -6160,6 +6160,12 @@ public final class Settings {
           */
          public static final String CUSTOM_UI_TOGGLE = "custom_ui_toggle";
 
+	/**
+          * About phone header style on Settings
+          * @hide
+          */
+         public static final String ABOUT_PHONE_HEADER = "about_phone_header";
+
         /**
          * reTicker Status
          * @hide
@@ -6666,6 +6672,7 @@ public final class Settings {
             PRIVATE_SETTINGS.add(BUTTON_BACKLIGHT_ONLY_WHEN_PRESSED);
             PRIVATE_SETTINGS.add(LOCK_HIDE_STATUS_BAR);
             PRIVATE_SETTINGS.add(CUSTOM_UI_TOGGLE);
+            PRIVATE_SETTINGS.add(ABOUT_PHONE_HEADER);
         }
 
         /**
