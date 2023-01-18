@@ -76,6 +76,8 @@ public final class CategoryKey {
             "com.android.settings.category.ia.other";
     public static final String CATEGORY_BANANAGEAR =
              "com.android.settings.category.ia.bananagear";
+    public static final String CATEGORY_OTHER =
+            "com.android.settings.category.ia.other";
 
     public static final Map<String, String> KEY_COMPAT_MAP;
 
