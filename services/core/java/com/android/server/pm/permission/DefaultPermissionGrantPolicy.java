@@ -140,6 +140,11 @@ final class DefaultPermissionGrantPolicy {
         PHONE_PERMISSIONS.add(Manifest.permission.PROCESS_OUTGOING_CALLS);
     }
 
+    private static final Set<String> WRITE_PERMISSIONS = new ArraySet<>();
+    static {
+        WRITE_PERMISSIONS.add(Manifest.permission.WRITE_SETTINGS);
+    }
+
     private static final Set<String> CONTACTS_PERMISSIONS = new ArraySet<>();
     static {
         CONTACTS_PERMISSIONS.add(Manifest.permission.READ_CONTACTS);
@@ -1081,6 +1086,11 @@ final class DefaultPermissionGrantPolicy {
         grantSystemFixedPermissionsToSystemPackage(pm,
                 getDefaultProviderAuthorityPackage("com.google.android.flipendo", userId),
                 userId, SUSPEND_APP_PERMISSIONS);
+
+        // OnePlus Camera
+        grantSystemFixedPermissionsToSystemPackage(pm,
+                getDefaultProviderAuthorityPackage("com.oneplus.camera", userId),
+                userId, WRITE_PERMISSIONS);
     }
 
     private String getDefaultSystemHandlerActivityPackageForCategory(PackageManagerWrapper pm,
