@@ -360,4 +360,8 @@
     <!-- List of system apps that are allowed to be locked with app lock.
         Use with extreme caution. -->
     <string-array name="config_appLockAllowedSystemApps" translatable="false" />
+
+    <!-- Array of allowed USB classes to remove from sDenyInterfaces. -->
+    <integer-array translatable="false" name="config_allowedUsbClasses">
+    </integer-array>
 </resources>
