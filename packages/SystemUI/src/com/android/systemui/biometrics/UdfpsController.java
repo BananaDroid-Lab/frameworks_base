@@ -41,10 +41,13 @@ import android.hardware.fingerprint.FingerprintSensorProperties;
 import android.hardware.fingerprint.FingerprintSensorPropertiesInternal;
 import android.hardware.fingerprint.IUdfpsOverlayController;
 import android.hardware.fingerprint.IUdfpsOverlayControllerCallback;
+import android.hardware.power.Boost;
 import android.net.Uri;
 import android.os.Handler;
 import android.os.PowerManager;
+import android.os.PowerManagerInternal;
 import android.os.Process;
+import android.os.SystemProperties;
 import android.os.Trace;
 import android.os.UserHandle;
 import android.os.VibrationAttributes;
@@ -67,6 +70,7 @@ import com.android.internal.util.LatencyTracker;
 import com.android.internal.util.banana.udfps.UdfpsUtils;
 import com.android.keyguard.FaceAuthApiRequestReason;
 import com.android.keyguard.KeyguardUpdateMonitor;
+import com.android.server.LocalServices;
 import com.android.systemui.Dumpable;
 import com.android.systemui.R;
 import com.android.systemui.animation.ActivityLaunchAnimator;
@@ -136,6 +140,7 @@ public class UdfpsController implements DozeReceiver, Dumpable {
 
     private final Context mContext;
     private final Execution mExecution;
+    private final PowerManagerInternal mLocalPowerManager;
     private final FingerprintManager mFingerprintManager;
     @NonNull private final LayoutInflater mInflater;
     private final WindowManager mWindowManager;
@@ -842,6 +847,8 @@ public class UdfpsController implements DozeReceiver, Dumpable {
         mUdfpsVendorCode = mContext.getResources().getInteger(R.integer.config_udfpsVendorCode);
         mDisableNightMode = UdfpsUtils.hasUdfpsSupport(mContext);
 
+        mLocalPowerManager = LocalServices.getService(PowerManagerInternal.class);
+
         mSecureSettings = secureSettings;
         updateScreenOffFodState();
         mSecureSettings.registerContentObserver(Settings.Secure.SCREEN_OFF_UDFPS_ENABLED,
@@ -994,6 +1001,9 @@ public class UdfpsController implements DozeReceiver, Dumpable {
                     BiometricOverlayConstants.REASON_AUTH_KEYGUARD);
         }
 
+        final int POWER_BOOST_TIMEOUT_MS = Integer.parseInt(
+            SystemProperties.get("persist.sys.powerhal.interaction.max", "200"));
+
         if (requestReason == REASON_AUTH_KEYGUARD
                 && !mKeyguardUpdateMonitor.isFingerprintDetectionRunning()) {
             Log.d(TAG, "Attempting to showUdfpsOverlay when fingerprint detection"
@@ -1007,6 +1017,10 @@ public class UdfpsController implements DozeReceiver, Dumpable {
             mOrientationListener.enable();
         } else {
             Log.v(TAG, "showUdfpsOverlay | the overlay is already showing");
+        }
+        
+        if (mLocalPowerManager != null) {
+            mLocalPowerManager.setPowerBoost(Boost.INTERACTION, POWER_BOOST_TIMEOUT_MS);
         }
     }
 
