@@ -4,12 +4,15 @@
      SPDX-License-Identifier: Apache-2.0
 -->
 <resources>
-    <color name="qs_ripple_color">@android:color/system_accent1_400</color>
-
     <!-- Island notification -->
     <color name="island_background_color_dark">@android:color/system_neutral1_800</color>
     <color name="island_background_color_light">@android:color/system_neutral1_0</color>
 
     <!-- Status bar avatar backgroud chip color -->
     <color name="statusbar_avatar_bg">@color/material_dynamic_neutral80</color>
+
+    <!-- QS Panel Style -->
+    <color name="qs_ripple_color">@android:color/system_accent1_400</color>
+    <color name="qs_translucent_bg">#59FFFFFF</color>
+    <color name="qs_white_bg">@android:color/system_neutral1_0</color>
 </resources>
