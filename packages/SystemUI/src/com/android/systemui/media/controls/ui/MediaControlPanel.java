@@ -40,6 +40,7 @@ import android.graphics.Color;
 import android.graphics.ColorMatrix;
 import android.graphics.ColorMatrixColorFilter;
 import android.graphics.Matrix;
+import android.graphics.PorterDuff;
 import android.graphics.Rect;
 import android.graphics.drawable.Animatable;
 import android.graphics.drawable.BitmapDrawable;
@@ -49,6 +50,8 @@ import android.graphics.drawable.GradientDrawable;
 import android.graphics.drawable.Icon;
 import android.graphics.drawable.LayerDrawable;
 import android.graphics.drawable.TransitionDrawable;
+import android.graphics.RenderEffect;
+import android.graphics.Shader;
 import android.media.session.MediaController;
 import android.media.session.MediaSession;
 import android.media.session.PlaybackState;
@@ -75,6 +78,7 @@ import androidx.constraintlayout.widget.ConstraintSet;
 
 import com.android.app.animation.Interpolators;
 import com.android.internal.annotations.VisibleForTesting;
+import com.android.internal.graphics.ColorUtils;
 import com.android.internal.jank.InteractionJankMonitor;
 import com.android.internal.logging.InstanceId;
 import com.android.internal.widget.CachingIconView;
@@ -251,6 +255,8 @@ public class MediaControlPanel {
     private boolean mWasPlaying = false;
     private boolean mButtonClicked = false;
 
+    private ArtworkSettings mArtworkSettings = new ArtworkSettings();
+
     /**
      * Initialize a new control panel
      *
@@ -391,6 +397,10 @@ public class MediaControlPanel {
         }
         this.mIsSeekBarEnabled = isSeekBarEnabled;
         updateSeekBarVisibility();
+    }
+
+    protected void updateArtworkSettings(ArtworkSettings artworkSettings) {
+        mArtworkSettings = artworkSettings;
     }
 
     /**
@@ -850,6 +860,21 @@ public class MediaControlPanel {
                 if (updateBackground || colorSchemeChanged
                         || (!mIsArtworkBound && isArtworkBound)) {
                     if (mPrevArtwork == null) {
+                    	   if (mArtworkSettings.getBlurEnabled()) {
+                    		   albumView.setRenderEffect(
+                        		RenderEffect.createBlurEffect(
+                            		mArtworkSettings.getBlurRadius(),
+                            		mArtworkSettings.getBlurRadius(),
+                            	   Shader.TileMode.MIRROR
+                        	)
+                    	    );
+               	 }
+                	final int fadeFilter = ColorUtils.blendARGB(
+                   		Color.TRANSPARENT,
+                    		Color.BLACK,
+                    		mArtworkSettings.getFadeLevel() / 100f
+                	);
+                	albumView.setColorFilter(fadeFilter, PorterDuff.Mode.SRC_ATOP);
                         albumView.setImageDrawable(artwork);
                     } else {
                         // Since we throw away the last transition, this'll pop if you backgrounds
