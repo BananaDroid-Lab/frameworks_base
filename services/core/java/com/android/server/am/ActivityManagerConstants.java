@@ -1617,7 +1617,10 @@ final class ActivityManagerConstants extends ContentObserver {
     }
 
     private void updateProactiveKillsEnabled() {
-        PROACTIVE_KILLS_ENABLED = DEFAULT_PROACTIVE_KILLS_ENABLED;
+        PROACTIVE_KILLS_ENABLED = DeviceConfig.getBoolean(
+                DeviceConfig.NAMESPACE_ACTIVITY_MANAGER,
+                KEY_PROACTIVE_KILLS_ENABLED,
+                DEFAULT_PROACTIVE_KILLS_ENABLED);
     }
 
     private void updateLowSwapThresholdPercent() {
