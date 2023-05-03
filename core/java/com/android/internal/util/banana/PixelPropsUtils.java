@@ -125,7 +125,8 @@ public class PixelPropsUtils {
     // Packages to Spoof as OnePlus 9 Pro
     private static final String[] packagesToChangeOP9P = {
             "com.epicgames.fortnite",
-            "com.epicgames.portal"
+            "com.epicgames.portal",
+            "com.tencent.lolm"
     };
 
     // Packages to Spoof as Mi 11T
