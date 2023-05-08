@@ -88,6 +88,8 @@ import com.android.systemui.util.settings.SecureSettings;
 
 import com.android.systemui.banana.logo.LogoImage;
 
+import com.android.systemui.banana.logo.LogoImage;
+
 import java.io.PrintWriter;
 import java.util.ArrayList;
 import java.util.Arrays;
