@@ -41,6 +41,7 @@ import com.android.app.animation.InterpolatorsAndroidX;
 import com.android.keyguard.KeyguardUpdateMonitor;
 import com.android.systemui.Dependency;
 import com.android.systemui.Dumpable;
+import com.android.systemui.banana.logo.LogoImage;
 import com.android.systemui.common.ui.ConfigurationState;
 import com.android.systemui.dagger.qualifiers.Main;
 import com.android.systemui.demomode.DemoMode;
@@ -818,12 +819,16 @@ public class CollapsedStatusBarFragment extends Fragment implements CommandQueue
     }
 
     public void hideNotificationIconArea(boolean animate) {
-        animateHide(mLeftLogo, animate);
+    	if (LogoImage.getLogoPosition(getContext()) == 0) {
+            animateFullyHide(mLeftLogo, animate);
+        }
         animateHide(mNotificationIconAreaInner, animate);
     }
 
     public void showNotificationIconArea(boolean animate) {
-        animateShow(mLeftLogo, animate);
+    	if (LogoImage.getLogoPosition(getContext()) == 0) {
+            animateShow(mLeftLogo, animate);
+        }
         animateShow(mNotificationIconAreaInner, animate);
     }
 
@@ -865,6 +870,13 @@ public class CollapsedStatusBarFragment extends Fragment implements CommandQueue
         if (v == null)
             return;
         animateHiddenState(v, View.INVISIBLE, animate);
+    }
+
+    /**
+     * Hides a view and its hierarchy.
+     */
+    private void animateFullyHide(final View v, boolean animate) {
+        animateHiddenState(v, View.GONE, animate);
     }
 
     /**
