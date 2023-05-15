@@ -1,4 +1,4 @@
-package com.android.systemui.ambient
+package com.statix.android.systemui.ambient
 
 import android.animation.Animator
 import android.animation.AnimatorListenerAdapter
