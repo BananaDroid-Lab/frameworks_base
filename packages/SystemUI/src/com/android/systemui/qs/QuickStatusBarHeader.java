@@ -21,13 +21,22 @@ import static com.android.systemui.battery.BatteryMeterView.BATTERY_STYLE_DOTTED
 import static com.android.systemui.battery.BatteryMeterView.BATTERY_STYLE_FULL_CIRCLE;
 
 import android.content.Context;
+import android.content.ContentResolver;
 import android.content.Intent;
 import android.content.res.Configuration;
 import android.content.res.Resources;
+import android.database.ContentObserver;
+import android.graphics.Bitmap;
+import android.graphics.BitmapFactory;
+import android.graphics.drawable.BitmapDrawable;
 import android.graphics.Color;
+import android.graphics.drawable.Drawable;
+import android.graphics.drawable.InsetDrawable;
 import android.graphics.PorterDuff;
+import android.graphics.PorterDuffColorFilter;
 import android.graphics.Rect;
 import android.net.Uri;
+import android.os.Handler;
 import android.os.UserHandle;
 import android.os.VibrationEffect;
 import android.os.Vibrator;
@@ -45,6 +54,7 @@ import android.widget.FrameLayout;
 import android.widget.LinearLayout;
 import android.widget.ImageView;
 import android.widget.Space;
+import android.widget.Toast;
 
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
@@ -66,6 +76,12 @@ import com.android.systemui.statusbar.policy.VariableDateView;
 import com.android.systemui.util.LargeScreenUtils;
 import com.android.systemui.tuner.TunerService;
 
+import com.android.internal.util.banana.CustomImageUtils;
+
+import java.io.File;
+import java.io.FileOutputStream;
+import java.io.IOException;
+import java.io.InputStream;
 import java.util.List;
 
 /**
@@ -133,10 +149,13 @@ public class QuickStatusBarHeader extends FrameLayout implements TunerService.Tu
     private View mPrivacyChip;
 
     // QS Header
+    private int mCurrentColor;
+    private ImageView mCustomQsHeaderImage;
     private ImageView mQsHeaderImageView;
     private View mQsHeaderLayout;
     private boolean mHeaderImageEnabled;
     private int mHeaderImageValue;
+    private boolean mQsHeaderBackGroundType;
 
     @Nullable
     private TintedIconManager mTintedIconManager;
@@ -175,10 +194,17 @@ public class QuickStatusBarHeader extends FrameLayout implements TunerService.Tu
     private NetworkTraffic mNetworkTraffic;
     private boolean mShowNetworkTraffic;
 
+    private int mCount = 0;
+
+    private static final String QS_HEADER_FILE_IMAGE = "custom_header_image";
+
     public QuickStatusBarHeader(Context context, AttributeSet attrs) {
         super(context, attrs);
         mActivityStarter = Dependency.get(ActivityStarter.class);
         mVibrator = (Vibrator) context.getSystemService(Context.VIBRATOR_SERVICE);
+        Handler mHandler = new Handler();
+        SettingsObserver mSettingsObserver = new SettingsObserver(mHandler);
+        mSettingsObserver.observe();
     }
 
     /**
@@ -227,7 +253,10 @@ public class QuickStatusBarHeader extends FrameLayout implements TunerService.Tu
 
 	mQsHeaderLayout = findViewById(R.id.layout_header);
         mQsHeaderImageView = findViewById(R.id.qs_header_image_view);
-        mQsHeaderImageView.setClipToOutline(true);
+        mCustomQsHeaderImage = findViewById(R.id.custom_qs_header_image);
+
+        updateResources();
+        updateSettings();
 
         mNetworkTraffic = findViewById(R.id.network_traffic);
 
@@ -238,8 +267,6 @@ public class QuickStatusBarHeader extends FrameLayout implements TunerService.Tu
                 .addFloat(mIconContainer, "alpha", 0, 1)
                 .addFloat(mBatteryRemainingIcon, "alpha", 0, 1)
                 .build();
-
-        updateResources();
 
         Dependency.get(TunerService.class).addTunable(this,
                 SHOW_QS_CLOCK,
@@ -306,6 +333,45 @@ public class QuickStatusBarHeader extends FrameLayout implements TunerService.Tu
         updateResources();
     }
 
+    private class SettingsObserver extends ContentObserver {
+        SettingsObserver(Handler handler) {
+            super(handler);
+        }
+        void observe() {
+            ContentResolver resolver = getContext().getContentResolver();
+            resolver.registerContentObserver(Settings.System
+                    .getUriFor(Settings.System.QS_HEADER_TYPE_BACKGROUND), false,
+                    this, UserHandle.USER_ALL);
+            resolver.registerContentObserver(Settings.System
+                    .getUriFor(Settings.System.QS_HEADER_CUSTOM_IMAGE), false,
+                    this, UserHandle.USER_ALL);
+        }
+
+        @Override
+         public void onChange(boolean selfChange, Uri uri) {
+            if (uri.equals(Settings.System.getUriFor(Settings.System.QS_HEADER_CUSTOM_IMAGE)) ||
+                uri.equals(Settings.System.getUriFor(Settings.System.QS_HEADER_TYPE_BACKGROUND))) {
+                mCount = 0;
+                updateSettings();
+            }
+        }
+    }
+
+    private void updateSettings() {
+        ContentResolver resolver = getContext().getContentResolver();
+        String headerImageUri = Settings.System.getStringForUser(mContext.getContentResolver(),
+                Settings.System.QS_HEADER_CUSTOM_IMAGE, UserHandle.USER_CURRENT);
+        post(new Runnable() {
+            public void run() {
+                updateQSHeaderImage();
+            }
+        });
+        if (headerImageUri != null) {
+            saveCustomFileFromString(Uri.parse(headerImageUri), QS_HEADER_FILE_IMAGE);
+        }
+        updateResources();
+    }
+
     @Override
     public void onClick(View v) {
         // Clock view is still there when the panel is not expanded
@@ -363,6 +429,40 @@ public class QuickStatusBarHeader extends FrameLayout implements TunerService.Tu
         } else {
             return false;
         }
+    }
+
+    public void saveCustomFileFromString(Uri fileUri, String fileName) {
+        try {
+            final InputStream fileStream = getContext().getContentResolver().openInputStream(fileUri);
+            File file = new File(getContext().getFilesDir(), fileName);
+            if (file.exists()) {
+                file.delete();
+            }
+            FileOutputStream output = new FileOutputStream(file);
+            byte[] buffer = new byte[8 * 1024];
+            int read;
+            while ((read = fileStream.read(buffer)) != -1) {
+                output.write(buffer, 0, read);
+            }
+            output.flush();
+        } catch (Exception e) {
+            if (mCount > 2) return;
+            if (mQsHeaderBackGroundType) {
+                Toast toast = Toast.makeText(mContext, R.string.photos_not_allowed, Toast.LENGTH_SHORT);
+                toast.show();
+            }
+            mCount++;
+        }
+    }
+
+    public BitmapDrawable getCustomImageFromString(String fileName) {
+        BitmapDrawable mImage = null;
+        File file = new File(getContext().getFilesDir(), fileName);
+        if (file.exists()) {
+            final Bitmap image = BitmapFactory.decodeFile(file.getAbsolutePath());
+            mImage = new BitmapDrawable(getContext().getResources(), image);
+        }
+        return mImage;
     }
 
     void updateResources() {
@@ -436,8 +536,11 @@ public class QuickStatusBarHeader extends FrameLayout implements TunerService.Tu
                 : SystemBarUtils.getQuickQsOffsetHeight(mContext);
         mHeaderQsPanel.setLayoutParams(qqsLP);
 
-        updateQSHeaderImage();
-
+        post(new Runnable() {
+            public void run() {
+                updateQSHeaderImage();
+            }
+        });
         updateHeadersPadding();
         updateAnimators();
 
@@ -445,21 +548,52 @@ public class QuickStatusBarHeader extends FrameLayout implements TunerService.Tu
     }
 
     private void updateQSHeaderImage() {
-        if (!mHeaderImageEnabled) {
+        mQsHeaderBackGroundType = Settings.System.getIntForUser(getContext().getContentResolver(),
+                    Settings.System.QS_HEADER_TYPE_BACKGROUND, 0, UserHandle.USER_CURRENT) == 1;
+
+        if (!mHeaderImageEnabled && !mQsHeaderBackGroundType) {
             mQsHeaderLayout.setVisibility(View.GONE);
             return;
         }
+
         Configuration config = mContext.getResources().getConfiguration();
         if (config.orientation != Configuration.ORIENTATION_LANDSCAPE) {
             boolean mIsNightMode = (mContext.getResources().getConfiguration().uiMode &
                 Configuration.UI_MODE_NIGHT_MASK) == Configuration.UI_MODE_NIGHT_YES;
             int fadeFilter = ColorUtils.blendARGB(Color.TRANSPARENT, mIsNightMode ?
                 Color.BLACK : Color.WHITE, 30 / 100f);
-            int resId = getResources().getIdentifier("qs_header_image_" +
-                String.valueOf(mHeaderImageValue), "drawable", "com.android.systemui");
-	    mQsHeaderImageView.setImageResource(resId);
-	    mQsHeaderImageView.setColorFilter(fadeFilter, PorterDuff.Mode.SRC_ATOP);
-            mQsHeaderLayout.setVisibility(View.VISIBLE);
+            int newFadeFilter = ColorUtils.blendARGB(Color.TRANSPARENT, mIsNightMode ?
+                Color.BLACK : Color.WHITE, 50 / 100f);
+            BitmapDrawable currentHeaderImage = null;
+            mCurrentColor = Color.WHITE;
+            if (mQsHeaderBackGroundType) {
+                currentHeaderImage = getCustomImageFromString(QS_HEADER_FILE_IMAGE);
+            }
+            if ((currentHeaderImage != null && mQsHeaderBackGroundType) && !mHeaderImageEnabled) {
+                mQsHeaderImageView.setVisibility(View.GONE);
+                int width = mQsHeaderLayout.getWidth();
+                int height = mQsHeaderLayout.getHeight();
+                int corner = getContext().getResources().getDimensionPixelSize(com.android.internal.R.dimen.rounded_corner_radius);
+                Bitmap bitmapHeader = currentHeaderImage.getBitmap();
+                Bitmap toCenter = CustomImageUtils.scaleCenterCrop(bitmapHeader, width, height);
+                BitmapDrawable bHeaderDrawable = new BitmapDrawable(mContext.getResources(),
+                            CustomImageUtils.getRoundedCornerBitmap(toCenter, corner, width, height, newFadeFilter));
+                Drawable customQsHeaderImage = new InsetDrawable(bHeaderDrawable, 0, 0, 0, 0);
+                mCustomQsHeaderImage.setImageDrawable(customQsHeaderImage);
+         	customQsHeaderImage.setColorFilter(newFadeFilter, PorterDuff.Mode.SRC_ATOP);
+                mCustomQsHeaderImage.setClipToOutline(false);
+                mCustomQsHeaderImage.setVisibility(View.VISIBLE);
+                mQsHeaderLayout.setVisibility(View.VISIBLE);
+	    } else if (mHeaderImageEnabled && !mQsHeaderBackGroundType) {
+                int resId = getResources().getIdentifier("qs_header_image_" +
+                    String.valueOf(mHeaderImageValue), "drawable", "com.android.systemui");
+                mCustomQsHeaderImage.setVisibility(View.GONE);
+                mQsHeaderImageView.setImageResource(resId);
+         	mQsHeaderImageView.setColorFilter(fadeFilter, PorterDuff.Mode.SRC_ATOP);
+                mQsHeaderImageView.setClipToOutline(true);
+                mQsHeaderImageView.setVisibility(View.VISIBLE);
+                mQsHeaderLayout.setVisibility(View.VISIBLE);
+	    }
 	} else {
             mQsHeaderLayout.setVisibility(View.GONE);
 	}

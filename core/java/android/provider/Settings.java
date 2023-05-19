@@ -6909,6 +6909,15 @@ public final class Settings {
         public static final String NOTIFICATION_MATERIAL_DISMISS_BGSTYLE = "notification_material_dismiss_bgstyle";
 
         /**
+        * by.SuperDroidBond
+        * @hide
+        */
+        public static final String QS_HEADER_TYPE_BACKGROUND = "qs_header_type_background";
+
+        /** @hide */
+        public static final String QS_HEADER_CUSTOM_IMAGE = "qs_header_custom_image";
+
+        /**
          * Keys we no longer back up under the current schema, but want to continue to
          * process when restoring historical backup datasets.
          *
