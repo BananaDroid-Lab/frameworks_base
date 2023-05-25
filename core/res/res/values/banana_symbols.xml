@@ -273,9 +273,6 @@
     <!-- Display color inversion availability -->
     <java-symbol type="bool" name="config_displayInversionAvailable" />
 
-    <!-- Boost Framework -->
-    <java-symbol type="bool" name="config_supportsBoostFramework" />
-
     <!-- InputFilter Class-->
     <java-symbol type="string" name="config_deviceInputFilterLibs" />
     <java-symbol type="string" name="config_deviceInputFilterClasses" />

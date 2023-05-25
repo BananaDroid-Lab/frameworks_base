@@ -380,7 +380,7 @@ public class ActivityTaskManagerService extends IActivityTaskManager.Stub {
      * @see WindowManagerThreadPriorityBooster
      */
     final Object mGlobalLockWithoutBoost = mGlobalLock;
-    public ActivityTaskSupervisor mTaskSupervisor;
+    ActivityTaskSupervisor mTaskSupervisor;
     ActivityClientController mActivityClientController;
     RootWindowContainer mRootWindowContainer;
     WindowManagerService mWindowManager;

@@ -381,9 +381,6 @@
     <!-- Display color inversion availability -->
     <bool name="config_displayInversionAvailable">true</bool>
 
-    <!-- Boost Framework -->
-    <bool name="config_supportsBoostFramework">false</bool>
-
     <!-- InputFilter Class-->
     <string name="config_deviceInputFilterLibs" translatable="false"></string>
     <string name="config_deviceInputFilterClasses" translatable="false"></string>
