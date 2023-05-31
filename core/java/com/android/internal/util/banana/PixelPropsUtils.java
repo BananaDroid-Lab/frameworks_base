@@ -162,7 +162,6 @@ public class PixelPropsUtils {
 
     private static volatile boolean sIsGms = false;
     private static volatile boolean sIsFinsky = false;
-    private static volatile boolean sNeedsWASpoof = false;
 
     static {
         propsToKeep = new HashMap<>();
@@ -218,17 +217,15 @@ public class PixelPropsUtils {
             || Arrays.asList(packagesToKeep).contains(pkgName)) {
             return;
         }
-        Map<String, Object> propsToChange = new HashMap<>();
-        sIsFinsky = pkgName.equals("com.android.vending");
-        sNeedsWASpoof = List.of("pixelmigrate", "restore", "snapchat").stream().anyMatch(pkgName::contains);
-        if (pkgName.equals("com.google.android.gms")) {
-            final String processName = Application.getProcessName().toLowerCase();
-            sIsGms = List.of("com.google.android.gms.persistent", "com.google.android.gms.unstable").stream().anyMatch(processName::contains);
-        }
-        if (sNeedsWASpoof || sIsGms) {
+        Map<String, Object> propsToChange = new HashMap<>();;
+        sIsFinsky = List.of(".apps.restore", "com.google.android.gms", "com.android.vending", "snapchat").stream().anyMatch(pkgName::contains);
+        if (sIsFinsky) {
+             final String processName = Application.getProcessName().toLowerCase();
+             sIsGms = List.of("unstable", "persistent", "pixelmigrate", "restore").stream().anyMatch(processName::contains);
+             if (!sIsGms) return;
              spoofBuildGms();
         }
-        if (pkgName.startsWith("com.google.") || !sIsFinsky || !sNeedsWASpoof || !sIsGms
+        if (pkgName.startsWith("com.google.") && !sIsFinsky
                 || Arrays.asList(extraPackagesToChange).contains(pkgName)) {
 
             boolean isPixelDevice = Arrays.asList(pixelCodenames).contains(SystemProperties.get(DEVICE));
