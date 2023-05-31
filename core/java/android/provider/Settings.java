@@ -12827,12 +12827,6 @@ public final class Settings {
         public static final String DOZE_FOR_NOTIFICATIONS = "doze_for_notifications";
 
         /**
-         * Brightness slider styles
-         * @hide
-         */
-        public static final String BRIGHTNESS_SLIDER_STYLE = "brightness_slider_style";
-
-        /**
          * Control whether GMS is enabled for this user.
          * @hide
          */
