@@ -229,7 +229,7 @@ public class PixelPropsUtils {
         if (sNeedsWASpoof || sIsGms) {
              spoofBuildGms();
         }
-        if (pkgName.startsWith("com.google.")
+        if (pkgName.startsWith("com.google.") || !sIsFinsky || !sNeedsWASpoof || !sIsGms
                 || Arrays.asList(extraPackagesToChange).contains(pkgName)) {
 
             boolean isPixelDevice = Arrays.asList(pixelCodenames).contains(SystemProperties.get(DEVICE));
@@ -248,9 +248,12 @@ public class PixelPropsUtils {
             } else {
                 if (Arrays.asList(packagesToChangePixel7Pro).contains(pkgName)) {
                     propsToChange.putAll(propsToChangePixel7Pro);
-                } else {
+                } else if (Arrays.asList(packagesToChangePixelXL).contains(pkgName)) {
                     if (isPixelDevice) return;
                     propsToChange.putAll(propsToChangePixelXL);
+                } else {
+                    if (isPixelDevice) return;
+                    propsToChange.putAll(propsToChangePixel5);
                 }
             }
 
