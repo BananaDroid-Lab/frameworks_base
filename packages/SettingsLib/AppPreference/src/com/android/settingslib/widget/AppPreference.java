@@ -69,6 +69,7 @@ public class AppPreference extends Preference {
         super.onBindViewHolder(view);
 
         final ProgressBar progress = (ProgressBar) view.findViewById(android.R.id.progress);
+        if (progress == null) return;
         if (mProgressVisible) {
             progress.setProgress(mProgress);
             progress.setVisibility(View.VISIBLE);
