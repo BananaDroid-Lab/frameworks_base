@@ -110,7 +110,7 @@
     <dimen name="qs_header_height_full">200dp</dimen>
 
     <!-- A11 QS style -->  
-    <dimen name="custom_qs_panel_padding_top">0dp</dimen>
+    <dimen name="custom_qs_panel_padding_top">12dp</dimen>
     <dimen name="custom_notification_row_padding">16dp</dimen>
 
     <!-- FPSInfoService FPS Info text padding -->
@@ -118,4 +118,19 @@
 
     <!-- Volume app icon -->  
     <dimen name="volume_app_icon_max_size">108dp</dimen>
+    
+    <!-- Oplus style -->
+    <dimen name="clock_padding_start">28dp</dimen>
+    <dimen name="clock_translate_x_size">12dp</dimen>
+    <dimen name="oos_clock_size">48dp</dimen>
+    <dimen name="oos_date_offset">62dp</dimen>
+    <dimen name="oos_date_start_margin">2dp</dimen>
+    <dimen name="oos_quick_qs_offset_height">24dp</dimen>
+    <dimen name="oplus_footer_background_size">40dp</dimen>
+    <dimen name="oplus_qqs_layout_margin_top">58dp</dimen>
+    <dimen name="oplus_media_output_switch_btn_margin_top">14dp</dimen>
+    <dimen name="oplus_media_panel_title_margin_top">15dp</dimen>
+    <dimen name="oplus_qs_media_panel_action_margin_top">16dp</dimen>
+    <dimen name="oplus_qs_media_panel_app_icon_margin_top">16dp</dimen>
+    <dimen name="oplus_media_icon_size">20dp</dimen>
 </resources>

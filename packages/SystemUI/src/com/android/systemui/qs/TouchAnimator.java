@@ -133,12 +133,12 @@ public class TouchAnimator {
         private List<Object> mTargets = new ArrayList<>();
         private List<KeyframeSet> mValues = new ArrayList<>();
 
-        private float mStartDelay;
+        public float mStartDelay;
         private float mEndDelay;
         @Nullable
-        private Interpolator mInterpolator;
+        public Interpolator mInterpolator;
         @Nullable
-        private Listener mListener;
+        public Listener mListener;
 
         public Builder addFloat(Object target, String property, float... values) {
             add(target, KeyframeSet.ofFloat(getProperty(target, property, float.class), values));

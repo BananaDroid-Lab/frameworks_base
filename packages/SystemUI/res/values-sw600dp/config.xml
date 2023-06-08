@@ -20,9 +20,6 @@
 <!-- These resources are around just to allow their values to be customized
      for different hardware and product builds. -->
 <resources>
-    <!-- The maximum number of rows in the QuickSettings -->
-    <integer name="quick_settings_max_rows">4</integer>
-
     <!-- Use collapsed layout for media player in landscape QQS -->
     <bool name="config_quickSettingsMediaLandscapeCollapsed">false</bool>
 
@@ -35,5 +32,5 @@
     <!-- How many lines to show in the security footer -->
     <integer name="qs_security_footer_maxLines">1</integer>
 
-    <bool name="config_use_large_screen_shade_header">true</bool>
+    <bool name="config_use_large_screen_shade_header">false</bool>
 </resources>

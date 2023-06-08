@@ -89,4 +89,5 @@
     <dimen name="lockscreen_shade_status_bar_transition_distance">@dimen/lockscreen_shade_full_transition_distance</dimen>
     <dimen name="lockscreen_shade_keyguard_transition_distance">@dimen/lockscreen_shade_media_transition_distance</dimen>
 
+    <dimen name="oplus_qqs_layout_margin_top">58dp</dimen>
 </resources>

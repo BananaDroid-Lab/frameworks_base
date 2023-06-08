@@ -32,6 +32,7 @@ import android.net.wifi.WifiManager;
 import android.telephony.SubscriptionManager;
 import android.telephony.TelephonyManager;
 import android.text.format.DateUtils;
+import android.text.format.Time;
 import android.util.Log;
 import android.util.Range;
 
@@ -40,6 +41,7 @@ import com.android.internal.annotations.VisibleForTesting;
 import com.android.internal.util.ArrayUtils;
 
 import java.time.ZonedDateTime;
+import java.util.Calendar;
 import java.util.Iterator;
 import java.util.Locale;
 
@@ -186,6 +188,46 @@ public class DataUsageController {
             usage.carrier = mNetworkController.getMobileDataNetworkName();
         }
         return usage;
+    }
+
+    public DataUsageInfo getMonthlyDataUsageInfo(NetworkTemplate template) {
+        final NetworkPolicy policy = findNetworkPolicy(template);
+        final long end = System.currentTimeMillis();
+        long start = end - DataUsageUtils.getCurrentMonthMillis();
+
+        final long totalBytes = getUsageLevel(template, start, end);
+        if (totalBytes < 0L) {
+            return warn("no entry data");
+        }
+        final DataUsageInfo usage = new DataUsageInfo();
+        usage.startDate = start;
+        usage.usageLevel = totalBytes;
+        usage.period = formatDateRange(start, end);
+        usage.cycleStart = start;
+        usage.cycleEnd = end;
+
+        if (policy != null) {
+            usage.limitLevel = policy.limitBytes > 0 ? policy.limitBytes : 0;
+            usage.warningLevel = policy.warningBytes > 0 ? policy.warningBytes : 0;
+        } else {
+            usage.warningLevel = getDefaultWarningLevel();
+        }
+        if (usage != null && mNetworkController != null) {
+            usage.carrier = mNetworkController.getMobileDataNetworkName();
+        }
+        return usage;
+    }
+
+    public DataUsageInfo getMonthlyDataUsageInfo() {
+        NetworkTemplate template = DataUsageUtils.getMobileTemplate(mContext, mSubscriptionId);
+
+        return getMonthlyDataUsageInfo(template);
+    }
+
+    public DataUsageInfo getWifiMonthlyDataUsageInfo() {
+        NetworkTemplate template = new NetworkTemplate.Builder(NetworkTemplate.MATCH_WIFI).build();
+
+        return getMonthlyDataUsageInfo(template);
     }
 
     /**

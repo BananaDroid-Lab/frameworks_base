@@ -31,5 +31,4 @@
     <!-- Copied from SysUI's @dimen/key_button_ripple_max_width for the embedded nav bar in the
          IME. -->
     <dimen name="input_method_nav_key_button_ripple_max_width">76dp</dimen>
-
 </resources>

@@ -20,37 +20,87 @@ import static com.android.systemui.battery.BatteryMeterView.BATTERY_STYLE_CIRCLE
 import static com.android.systemui.battery.BatteryMeterView.BATTERY_STYLE_DOTTED_CIRCLE;
 import static com.android.systemui.battery.BatteryMeterView.BATTERY_STYLE_FULL_CIRCLE;
 
+import static com.android.systemui.people.PeopleSpaceUtils.convertDrawableToBitmap;
+
+import android.annotation.UiThread;
+import android.bluetooth.BluetoothAdapter;
+import android.bluetooth.BluetoothDevice;
+import android.content.BroadcastReceiver;
 import android.content.Context;
 import android.content.Intent;
+import android.content.IntentFilter;
+import android.content.pm.ApplicationInfo;
+import android.content.pm.PackageManager;
 import android.content.res.Configuration;
+import android.content.res.ColorStateList;
 import android.content.res.Resources;
+import android.graphics.Bitmap;
 import android.graphics.Color;
+import android.graphics.drawable.Drawable;
 import android.graphics.PorterDuff;
 import android.graphics.Rect;
+import android.media.AudioManager;
+import android.media.MediaMetadata;
+import android.media.session.MediaController;
+import android.media.session.MediaController.PlaybackInfo;
+import android.media.session.MediaSession;
+import android.media.session.MediaSession.QueueItem;
+import android.media.session.MediaSessionManager;
+import android.media.session.PlaybackState;
+import android.media.session.MediaSessionLegacyHelper;
+import android.net.ConnectivityManager;
+import android.net.Network;
+import android.net.NetworkInfo;
+import android.net.NetworkCapabilities;
 import android.net.Uri;
+import android.net.wifi.WifiInfo;
+import android.net.wifi.WifiManager;
+import android.os.AsyncTask;
+import android.os.Bundle;
+import android.os.Handler;
+import android.os.Looper;
+import android.os.SystemClock;
 import android.os.UserHandle;
 import android.os.VibrationEffect;
 import android.os.Vibrator;
 import android.provider.AlarmClock;
 import android.provider.CalendarContract;
 import android.provider.Settings;
+import android.telephony.SubscriptionInfo;
+import android.telephony.SubscriptionManager;
+import android.telephony.PhoneStateListener;
+import android.telephony.TelephonyManager;
+import android.text.BidiFormatter;
+import android.text.format.Formatter;
+import android.text.format.Formatter.BytesResult;
+import android.text.TextUtils;
 import android.util.AttributeSet;
 import android.util.Pair;
 import android.view.DisplayCutout;
 import android.view.MotionEvent;
+import android.view.Gravity;
+import android.view.KeyEvent;
 import android.view.View;
 import android.view.ViewGroup;
 import android.view.WindowInsets;
+import android.view.WindowManager;
 import android.widget.FrameLayout;
 import android.widget.LinearLayout;
 import android.widget.ImageView;
 import android.widget.Space;
+import android.widget.TextClock;
+import android.widget.TextView;
 
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 
 import com.android.internal.graphics.ColorUtils;
+import com.android.internal.jank.InteractionJankMonitor;
 import com.android.internal.policy.SystemBarUtils;
+import com.android.internal.util.systemui.qs.QSLayoutUtils;
+import com.android.internal.util.ArrayUtils;
+import com.android.settingslib.drawable.CircleFramedDrawable;
+import com.android.settingslib.net.DataUsageController;
 import com.android.settingslib.Utils;
 import com.android.systemui.Dependency;
 import com.android.systemui.R;
@@ -66,7 +116,11 @@ import com.android.systemui.statusbar.policy.VariableDateView;
 import com.android.systemui.util.LargeScreenUtils;
 import com.android.systemui.tuner.TunerService;
 
+import java.lang.reflect.Method;
+import java.util.ArrayList;
 import java.util.List;
+import java.util.Objects;
+import java.util.Set;
 
 /**
  * View that contains the top-most bits of the QS panel (primarily the status bar with date, time,
@@ -98,6 +152,9 @@ public class QuickStatusBarHeader extends FrameLayout implements TunerService.Tu
     private static final String NETWORK_TRAFFIC_LOCATION =
             "system:" + Settings.System.NETWORK_TRAFFIC_LOCATION;
 
+    private static final String QS_PANEL_STYLE =
+            "system:" + Settings.System.QS_PANEL_STYLE;
+
     private boolean mExpanded;
     private boolean mQsDisabled;
 
@@ -111,32 +168,45 @@ public class QuickStatusBarHeader extends FrameLayout implements TunerService.Tu
 
     protected QuickQSPanel mHeaderQsPanel;
     private View mDatePrivacyView;
-    private View mDateView;
-    // DateView next to clock. Visible on QQS
-    private VariableDateView mClockDateView;
+    private TextClock mClockView;
+    private TextClock mOosDate;
     private View mStatusIconsView;
     private View mContainer;
 
-    private View mQSCarriers;
     private ViewGroup mClockContainer;
-    private Clock mClockView;
     private Space mDatePrivacySeparator;
     private View mClockIconsSeparator;
     private boolean mShowClockIconsSeparator;
     private View mRightLayout;
-    private View mDateContainer;
     private View mPrivacyContainer;
 
     private BatteryMeterView mBatteryRemainingIcon;
     private BatteryMeterView mBatteryIcon;
     private StatusIconContainer mIconContainer;
     private View mPrivacyChip;
+    
+    // Oplus
+    private View mOosClockLayout;
+    private View mOosClockContainer;
+    private View mOosClockDateContainer;
+    private View mSettingsShortcut;
+    private TextView mQsDataUsageText;
+
+    // Oplus QS tiles / data usage
+    private WifiManager mWifiManager;
+    private ConnectivityManager mConnectivityManager;
+    private SubscriptionManager mSubManager;
+    private DataUsageController mDataController;
 
     // QS Header
     private ImageView mQsHeaderImageView;
     private View mQsHeaderLayout;
     private boolean mHeaderImageEnabled;
     private int mHeaderImageValue;
+    
+    // QS styles
+    private int mQsUIStyle;
+    private boolean mTintAlpha;
 
     @Nullable
     private TintedIconManager mTintedIconManager;
@@ -159,7 +229,6 @@ public class QuickStatusBarHeader extends FrameLayout implements TunerService.Tu
 
     @NonNull
     private List<String> mRssiIgnoredSlots = List.of();
-    private boolean mIsSingleCarrier;
 
     private boolean mHasLeftCutout;
     private boolean mHasRightCutout;
@@ -179,6 +248,21 @@ public class QuickStatusBarHeader extends FrameLayout implements TunerService.Tu
         super(context, attrs);
         mActivityStarter = Dependency.get(ActivityStarter.class);
         mVibrator = (Vibrator) context.getSystemService(Context.VIBRATOR_SERVICE);
+        mWifiManager = (WifiManager) context.getSystemService(Context.WIFI_SERVICE);
+        mConnectivityManager = (ConnectivityManager) context.getSystemService(Context.CONNECTIVITY_SERVICE);
+        mSubManager = (SubscriptionManager) context.getSystemService(Context.TELEPHONY_SUBSCRIPTION_SERVICE);
+        mDataController = new DataUsageController(context);
+    }
+
+    private boolean isWifiConnected() {
+        final Network network = mConnectivityManager.getActiveNetwork();
+        if (network != null) {
+            NetworkCapabilities capabilities = mConnectivityManager.getNetworkCapabilities(network);
+                return capabilities != null &&
+                    capabilities.hasTransport(NetworkCapabilities.TRANSPORT_WIFI);
+        } else {
+            return false;
+        }
     }
 
     /**
@@ -193,30 +277,20 @@ public class QuickStatusBarHeader extends FrameLayout implements TunerService.Tu
     @Override
     protected void onFinishInflate() {
         super.onFinishInflate();
+        Context context = getContext();
 
         mHeaderQsPanel = findViewById(R.id.quick_qs_panel);
         mDatePrivacyView = findViewById(R.id.quick_status_bar_date_privacy);
         mStatusIconsView = findViewById(R.id.quick_qs_status_icons);
-        mQSCarriers = findViewById(R.id.carrier_group);
         mContainer = findViewById(R.id.qs_container);
         mIconContainer = findViewById(R.id.statusIcons);
         mPrivacyChip = findViewById(R.id.privacy_chip);
-        mDateView = findViewById(R.id.date);
-        mDateView.setOnClickListener(this);
-        mDateView.setOnLongClickListener(this);
-        mClockDateView = findViewById(R.id.date_clock);
-        mClockDateView.setOnClickListener(this);
-        mClockDateView.setOnLongClickListener(this);
         mClockIconsSeparator = findViewById(R.id.separator);
         mRightLayout = findViewById(R.id.rightLayout);
-        mDateContainer = findViewById(R.id.date_container);
         mPrivacyContainer = findViewById(R.id.privacy_container);
 
         mClockContainer = findViewById(R.id.clock_container);
-        mClockView = findViewById(R.id.clock);
-        mClockView.setQsHeader();
-        mClockView.setOnClickListener(this);
-        mDatePrivacySeparator = findViewById(R.id.space);
+
         // Tint for the battery icons are handled in setupHost()
         mBatteryRemainingIcon = findViewById(R.id.batteryRemainingIcon);
         mBatteryRemainingIcon.mQS = true;
@@ -231,11 +305,23 @@ public class QuickStatusBarHeader extends FrameLayout implements TunerService.Tu
 
         mNetworkTraffic = findViewById(R.id.network_traffic);
 
-        Configuration config = mContext.getResources().getConfiguration();
-        setDatePrivacyContainersWidth(config.orientation == Configuration.ORIENTATION_LANDSCAPE);
+        // Oplus
+        mOosClockLayout = findViewById(R.id.oos_qs_container);
+        mOosClockDateContainer = findViewById(R.id.oos_clock_date_container);
+        mOosClockContainer = findViewById(R.id.oos_clock);
+        mOosClockContainer.setOnClickListener(this);
+        mOosClockContainer.setOnLongClickListener(this);
+        mOosDate = findViewById(R.id.oos_date);
+        mOosDate.setOnClickListener(this);
+        mOosDate.setOnLongClickListener(this);
+        mSettingsShortcut = findViewById(R.id.custom_oplus_shortcut);
+        mSettingsShortcut.setOnClickListener(this);
+        mQsDataUsageText = findViewById(R.id.oos_carrier_label);
+        mQsDataUsageText.setOnClickListener(this);
+
+        updateResources();
 
         mIconsAlphaAnimatorFixed = new TouchAnimator.Builder()
-                .addFloat(mIconContainer, "alpha", 0, 1)
                 .addFloat(mBatteryRemainingIcon, "alpha", 0, 1)
                 .build();
 
@@ -250,6 +336,7 @@ public class QuickStatusBarHeader extends FrameLayout implements TunerService.Tu
                 QS_SHOW_BATTERY_PERCENT,
                 QS_SHOW_BATTERY_ESTIMATE,
                 QS_HEADER_IMAGE,
+                QS_PANEL_STYLE,
                 NETWORK_TRAFFIC_LOCATION);
     }
 
@@ -270,14 +357,7 @@ public class QuickStatusBarHeader extends FrameLayout implements TunerService.Tu
 
         mQSExpansionPathInterpolator = qsExpansionPathInterpolator;
         updateAnimators();
-    }
-
-    void setIsSingleCarrier(boolean isSingleCarrier) {
-        mIsSingleCarrier = isSingleCarrier;
-        if (mIsSingleCarrier) {
-            mIconContainer.removeIgnoredSlots(mRssiIgnoredSlots);
-        }
-        updateAlphaAnimator();
+        setUsageTextAsync();
     }
 
     public QuickQSPanel getHeaderQsPanel() {
@@ -287,8 +367,8 @@ public class QuickStatusBarHeader extends FrameLayout implements TunerService.Tu
     @Override
     protected void onMeasure(int widthMeasureSpec, int heightMeasureSpec) {
         super.onMeasure(widthMeasureSpec, heightMeasureSpec);
-        if (mDatePrivacyView.getMeasuredHeight() != mTopViewMeasureHeight) {
-            mTopViewMeasureHeight = mDatePrivacyView.getMeasuredHeight();
+        if (mStatusIconsView.getMeasuredHeight() != mTopViewMeasureHeight) {
+            mTopViewMeasureHeight = mStatusIconsView.getMeasuredHeight();
             updateAnimators();
         }
     }
@@ -297,7 +377,6 @@ public class QuickStatusBarHeader extends FrameLayout implements TunerService.Tu
     protected void onConfigurationChanged(Configuration newConfig) {
         super.onConfigurationChanged(newConfig);
         updateResources();
-        setDatePrivacyContainersWidth(newConfig.orientation == Configuration.ORIENTATION_LANDSCAPE);
     }
 
     @Override
@@ -311,15 +390,22 @@ public class QuickStatusBarHeader extends FrameLayout implements TunerService.Tu
         // Clock view is still there when the panel is not expanded
         // Making sure we get the date action when the user clicks on it
         // but actually is seeing the date
-        if (v == mClockView) {
+        if (v == mOosClockContainer) {
             mActivityStarter.postStartActivityDismissingKeyguard(new Intent(
                     AlarmClock.ACTION_SHOW_ALARMS), 0);
-        } else if (v == mDateView || v == mClockDateView) {
+        } else if (v == mOosDate) {
             Uri.Builder builder = CalendarContract.CONTENT_URI.buildUpon();
             builder.appendPath("time");
             builder.appendPath(Long.toString(System.currentTimeMillis()));
             Intent todayIntent = new Intent(Intent.ACTION_VIEW, builder.build());
             mActivityStarter.postStartActivityDismissingKeyguard(todayIntent, 0);
+        } else if (v == mSettingsShortcut) {
+            mActivityStarter.postStartActivityDismissingKeyguard(new Intent("android.settings.SETTINGS"), 0);
+        } else if (v == mQsDataUsageText) {
+            Intent nIntent = new Intent(Intent.ACTION_MAIN);
+            nIntent.setClassName("com.android.settings",
+                    "com.android.settings.Settings$DataUsageSummaryActivity");
+            mActivityStarter.startActivity(nIntent, true /* dismissShade */);
         } else if (v == mBatteryRemainingIcon) {
             mActivityStarter.postStartActivityDismissingKeyguard(new Intent(
                     Intent.ACTION_POWER_USAGE_SUMMARY), 0);
@@ -328,7 +414,7 @@ public class QuickStatusBarHeader extends FrameLayout implements TunerService.Tu
 
     @Override
     public boolean onLongClick(View v) {
-        if (v == mClockView || v == mDateView || v == mClockDateView) {
+        if (v == mOosClockContainer || v == mOosDate) {
             Intent nIntent = new Intent(Intent.ACTION_MAIN);
             nIntent.setClassName("com.android.settings",
                     "com.android.settings.Settings$DateTimeSettingsActivity");
@@ -341,18 +427,6 @@ public class QuickStatusBarHeader extends FrameLayout implements TunerService.Tu
             return true;
         }
         return false;
-    }
-
-    private void setDatePrivacyContainersWidth(boolean landscape) {
-        LinearLayout.LayoutParams lp = (LinearLayout.LayoutParams) mDateContainer.getLayoutParams();
-        lp.width = landscape ? WRAP_CONTENT : 0;
-        lp.weight = landscape ? 0f : 1f;
-        mDateContainer.setLayoutParams(lp);
-
-        lp = (LinearLayout.LayoutParams) mPrivacyContainer.getLayoutParams();
-        lp.width = landscape ? WRAP_CONTENT : 0;
-        lp.weight = landscape ? 0f : 1f;
-        mPrivacyContainer.setLayoutParams(lp);
     }
 
     @Override
@@ -387,19 +461,19 @@ public class QuickStatusBarHeader extends FrameLayout implements TunerService.Tu
         mStatusBarPaddingTop = resources.getDimensionPixelSize(
                 R.dimen.status_bar_padding_top);
 
-        mDatePrivacyView.getLayoutParams().height = statusBarHeight;
-        mDatePrivacyView.setLayoutParams(mDatePrivacyView.getLayoutParams());
+       int quickQsOffsetHeight = resources.getDimensionPixelSize(R.dimen.oos_quick_qs_offset_height);
 
-        mStatusIconsView.getLayoutParams().height = statusBarHeight;
-        mStatusIconsView.setLayoutParams(mStatusIconsView.getLayoutParams());
+        ViewGroup.LayoutParams datePrivacyLayoutParams = mDatePrivacyView.getLayoutParams();
+        datePrivacyLayoutParams.height = Math.max(quickQsOffsetHeight, mDatePrivacyView.getMinimumHeight());
+        mDatePrivacyView.setLayoutParams(datePrivacyLayoutParams);
 
-        ViewGroup.LayoutParams lp = getLayoutParams();
-        if (mQsDisabled) {
-            lp.height = mStatusIconsView.getLayoutParams().height - mWaterfallTopInset;
-        } else {
-            lp.height = WRAP_CONTENT;
-        }
-        setLayoutParams(lp);
+        ViewGroup.LayoutParams statusIconsLayoutParams = mStatusIconsView.getLayoutParams();
+        statusIconsLayoutParams.height = Math.max(quickQsOffsetHeight, mStatusIconsView.getMinimumHeight());
+        mStatusIconsView.setLayoutParams(statusIconsLayoutParams);
+
+        ViewGroup.LayoutParams layoutParams = getLayoutParams();
+        layoutParams.height = mQsDisabled ? mStatusIconsView.getLayoutParams().height : ViewGroup.LayoutParams.WRAP_CONTENT;
+        setLayoutParams(layoutParams);
 
         int textColor = Utils.getColorAttrDefaultColor(mContext, android.R.attr.textColorPrimary);
         if (textColor != mTextColorPrimary) {
@@ -408,7 +482,6 @@ public class QuickStatusBarHeader extends FrameLayout implements TunerService.Tu
                     (isCircleBattery == 1 || isCircleBattery == 2 || isCircleBattery == 3)
                     ? android.R.attr.textColorHint : android.R.attr.textColorSecondary);
             mTextColorPrimary = textColor;
-            mClockView.setTextColor(textColor);
             if (mTintedIconManager != null) {
                 mTintedIconManager.setTint(textColor);
             }
@@ -430,18 +503,23 @@ public class QuickStatusBarHeader extends FrameLayout implements TunerService.Tu
             mNetworkTraffic.setTint(textColor);
         }
 
-        MarginLayoutParams qqsLP = (MarginLayoutParams) mHeaderQsPanel.getLayoutParams();
-        qqsLP.topMargin = largeScreenHeaderActive || !mUseCombinedQSHeader
-                ? mContext.getResources().getDimensionPixelSize(R.dimen.qqs_layout_margin_top)
-                : SystemBarUtils.getQuickQsOffsetHeight(mContext);
-        mHeaderQsPanel.setLayoutParams(qqsLP);
+        ViewGroup.MarginLayoutParams headerQsPanelLayoutParams = (ViewGroup.MarginLayoutParams) mHeaderQsPanel.getLayoutParams();
+        if (largeScreenHeaderActive || !mUseCombinedQSHeader) {
+            quickQsOffsetHeight = resources.getDimensionPixelSize(R.dimen.oplus_qqs_layout_margin_top);
+        }
+        headerQsPanelLayoutParams.topMargin = quickQsOffsetHeight;
+        mHeaderQsPanel.setLayoutParams(headerQsPanelLayoutParams);
 
         updateQSHeaderImage();
 
         updateHeadersPadding();
-        updateAnimators();
+        
+        Configuration config = mContext.getResources().getConfiguration();
+        boolean isLandscape = config.orientation == Configuration.ORIENTATION_LANDSCAPE;
 
-        updateClockDatePadding();
+        mOosClockLayout.setVisibility(mQsDisabled || isLandscape ? View.GONE : View.VISIBLE);
+
+        setUsageTextAsync();
     }
 
     private void updateQSHeaderImage() {
@@ -465,86 +543,128 @@ public class QuickStatusBarHeader extends FrameLayout implements TunerService.Tu
 	}
     }
 
-    private void updateClockDatePadding() {
-        int startPadding = mContext.getResources()
-                .getDimensionPixelSize(R.dimen.status_bar_left_clock_starting_padding);
-        int endPadding = mContext.getResources()
-                .getDimensionPixelSize(R.dimen.status_bar_left_clock_end_padding);
-        mClockView.setPaddingRelative(
-                startPadding,
-                mClockView.getPaddingTop(),
-                endPadding,
-                mClockView.getPaddingBottom()
-        );
-    }
-
-    private void updateAnimators() {
-        if (mUseCombinedQSHeader) {
+    public void updateAnimators() {
+        boolean useCombinedQSHeader = mUseCombinedQSHeader;
+        if (useCombinedQSHeader) {
             mTranslationAnimator = null;
             return;
         }
-        updateAlphaAnimator();
-        int offset = mTopViewMeasureHeight;
 
-        mTranslationAnimator = new TouchAnimator.Builder()
-                .addFloat(mContainer, "translationY", 0, offset)
-                .setInterpolator(mQSExpansionPathInterpolator != null
-                        ? mQSExpansionPathInterpolator.getYInterpolator()
-                        : null)
-                .build();
+       TouchAnimator.Builder alphaAnimatorBuilder = new TouchAnimator.Builder();
+                   alphaAnimatorBuilder.addFloat(mQsDataUsageText, "alpha", 0, 1);
+                   alphaAnimatorBuilder.addFloat(mIconContainer, "alpha", 1, 0, 1);
+            alphaAnimatorBuilder.mListener = new TouchAnimator.ListenerAdapter() {
+                @Override
+                public void onAnimationAtStart() {
+                    mQsDataUsageText.setVisibility(View.GONE);
+                }
+
+                @Override
+                public void onAnimationAtEnd() {
+                    mQsDataUsageText.setVisibility(View.VISIBLE);
+                    setUsageTextAsync();
+                }
+
+                @Override
+                public void onAnimationStarted() {
+                    mQsDataUsageText.setVisibility(View.VISIBLE);
+                }
+            };
+
+        mAlphaAnimator = alphaAnimatorBuilder.build();
+
+        FrameLayout.LayoutParams layoutParams = (FrameLayout.LayoutParams) getLayoutParams();
+        int rightMargin = layoutParams.rightMargin;
+        int halfRightMargin = rightMargin / 2;
+        int footerBackgroundSize = mContext.getResources().getDimensionPixelSize(R.dimen.oplus_footer_background_size);
+        int rightMarginOffset2 = footerBackgroundSize + 2;
+        int carrierTranslateY = footerBackgroundSize - (footerBackgroundSize / 3);
+        int oosDateOffset = mContext.getResources().getDimensionPixelSize(R.dimen.oos_date_offset);
+
+        TouchAnimator.Builder translationAnimatorBuilder = new TouchAnimator.Builder();
+        translationAnimatorBuilder.addFloat(mHeaderQsPanel, "translationY", 0.0f, mTopViewMeasureHeight)
+                .addFloat(mDatePrivacyView, "translationY", halfRightMargin, 30.0f)
+                .addFloat(mOosClockLayout, "translationY", 0.0f, 30.0f)
+                .addFloat(mOosDate, "translationY", halfRightMargin, rightMarginOffset2)
+                .addFloat(mOosDate, "translationX", 0.0f, -oosDateOffset)
+                .addFloat(mOosClockContainer, "scaleX", 1.0f, 2.0f)
+                .addFloat(mOosClockContainer, "scaleY", 1.0f, 2.0f)
+                .addFloat(mOosClockContainer, "translationY", halfRightMargin, carrierTranslateY)
+                .addFloat(mOosClockContainer, "translationX", 0.0f, oosDateOffset / 2)
+                .addFloat(mSettingsShortcut, "rotation", 0.0f, 180.0f);
+        translationAnimatorBuilder.mInterpolator = mQSExpansionPathInterpolator != null ? mQSExpansionPathInterpolator.getYInterpolator() : null;
+        translationAnimatorBuilder.mStartDelay = 0.22f;
+        mTranslationAnimator = translationAnimatorBuilder.build();
     }
 
-    private void updateAlphaAnimator() {
-        if (mUseCombinedQSHeader) {
-            mAlphaAnimator = null;
-            return;
+    private void setUsageTextAsync() {
+        AsyncTask.execute(new Runnable() {
+            @Override
+            public void run() {
+                setUsageText();
+            }
+        });
+    }
+
+    private void setUsageText() {
+        if (mQsDataUsageText == null) return;
+        if (!isWifiConnected()) {
+            mDataController.setSubscriptionId(SubscriptionManager.getDefaultDataSubscriptionId());
         }
-        TouchAnimator.Builder builder = new TouchAnimator.Builder()
-                // These views appear on expanding down
-                .addFloat(mDateView, "alpha", 0, 0, 1)
-                .addFloat(mClockDateView, "alpha", 1, 0, 0)
-                .addFloat(mQSCarriers, "alpha", 0, 1)
-                // Use statusbar paddings when collapsed,
-                // align with QS when expanded, and animate translation
-                .addFloat(mClockContainer, "translationX",
-                    mHeaderPaddingLeft + mStatusBarPaddingStart, 0)
-                .addFloat(mRightLayout, "translationX",
-                    -(mHeaderPaddingRight + mStatusBarPaddingEnd), 0)
-                .setListener(new TouchAnimator.ListenerAdapter() {
-                    @Override
-                    public void onAnimationAtEnd() {
-                        super.onAnimationAtEnd();
-                        if (!mIsSingleCarrier) {
-                            mIconContainer.addIgnoredSlots(mRssiIgnoredSlots);
-                        }
-                    }
 
-                    @Override
-                    public void onAnimationStarted() {
-                        if (mShowDate) {
-                            mClockDateView.setVisibility(View.VISIBLE);
-                            mClockDateView.setFreezeSwitching(true);
-                        }
-                        setSeparatorVisibility(false);
-                        if (!mIsSingleCarrier) {
-                            mIconContainer.addIgnoredSlots(mRssiIgnoredSlots);
-                        }
-                        mClockDateView.setVisibility(View.GONE);
-                    }
+        DataUsageController.DataUsageInfo info = isWifiConnected() ? mDataController.getWifiMonthlyDataUsageInfo() : mDataController.getMonthlyDataUsageInfo();
+        boolean showData = info != null && info.usageLevel > 0;
+        String suffix = isWifiConnected() ? getWifiSsid() : getSlotCarrierName();
+        String dataUsage = suffix + ": " + formatDataUsage(info.usageLevel) + " " + mContext.getResources().getString(R.string.usage_data);
 
-                    @Override
-                    public void onAnimationAtStart() {
-                        super.onAnimationAtStart();
-                        if (mShowDate) {
-                            mClockDateView.setFreezeSwitching(false);
-                            mClockDateView.setVisibility(View.VISIBLE);
-                        }
-                        setSeparatorVisibility(mShowClockIconsSeparator);
-                        // In QQS we never ignore RSSI.
-                        mIconContainer.removeIgnoredSlots(mRssiIgnoredSlots);
-                    }
-                });
-        mAlphaAnimator = builder.build();
+        // Update the UI on the main thread
+        mQsDataUsageText.post(new Runnable() {
+            @Override
+            public void run() {
+                if (showData) {
+                    mQsDataUsageText.setText(dataUsage);
+                } else {
+                    mQsDataUsageText.setText(mContext.getResources().getString(R.string.usage_data_unavailable));
+                }
+            }
+        });
+    }
+
+    private String getWifiSsid() {
+        WifiInfo wifiInfo = mWifiManager.getConnectionInfo();
+        if (wifiInfo == null) {
+            return mContext.getResources().getString(R.string.usage_wifi_default_suffix);
+        }
+
+        String ssid = wifiInfo.getSSID();
+        if (ssid == null || ssid.equals(WifiManager.UNKNOWN_SSID)) {
+            return mContext.getResources().getString(R.string.usage_wifi_default_suffix);
+        }
+        
+        return ssid.replace("\"", "");
+    }
+
+    private String getSlotCarrierName() {
+        CharSequence result = mContext.getResources().getString(R.string.usage_data_default_suffix);
+        int subId = mSubManager.getDefaultDataSubscriptionId();
+        List<SubscriptionInfo> subInfoList = mSubManager.getActiveSubscriptionInfoList(true);
+        if (subInfoList != null) {
+            for (SubscriptionInfo subInfo : subInfoList) {
+                if (subInfo != null && subId == subInfo.getSubscriptionId()) {
+                    result = subInfo.getDisplayName();
+                    break;
+                }
+            }
+        }
+        
+        return result.toString();
+    }
+
+    private CharSequence formatDataUsage(long byteValue) {
+        final BytesResult res = Formatter.formatBytes(mContext.getResources(), byteValue,
+                Formatter.FLAG_IEC_UNITS);
+        return BidiFormatter.getInstance().unicodeWrap(mContext.getString(
+                com.android.internal.R.string.fileSizeSuffix, res.value, res.units));
     }
 
     void setChipVisibility(boolean visibility) {
@@ -564,7 +684,6 @@ public class QuickStatusBarHeader extends FrameLayout implements TunerService.Tu
             mIconContainer.setAlpha(1);
             mBatteryRemainingIcon.setAlpha(1);
         }
-
     }
 
     /** */
@@ -573,6 +692,9 @@ public class QuickStatusBarHeader extends FrameLayout implements TunerService.Tu
         mExpanded = expanded;
         quickQSPanelController.setExpanded(expanded);
         updateEverything();
+        if (expanded && mPrivacyChip != null && mPrivacyChip.getVisibility() == View.VISIBLE) {
+            mBatteryRemainingIcon.setAlpha(0);
+        }
     }
 
     /**
@@ -593,7 +715,7 @@ public class QuickStatusBarHeader extends FrameLayout implements TunerService.Tu
         if (mTranslationAnimator != null) {
             mTranslationAnimator.setPosition(keyguardExpansionFraction);
         }
-        if (mIconsAlphaAnimator != null) {
+        if (mIconsAlphaAnimator != null && mPrivacyChip != null && mPrivacyChip.getVisibility() == View.GONE) {
             mIconsAlphaAnimator.setPosition(keyguardExpansionFraction);
         }
         // If forceExpanded (we are opening QS from lockscreen), the animators have been set to
@@ -625,6 +747,18 @@ public class QuickStatusBarHeader extends FrameLayout implements TunerService.Tu
                 .getStatusBarContentInsetsForCurrentRotation();
         boolean hasCornerCutout = mInsetsProvider.currentRotationHasCornerCutout();
 
+        LinearLayout.LayoutParams lpC =
+                (LinearLayout.LayoutParams) mClockContainer.getLayoutParams();
+        lpC.width = 0;
+        lpC.weight = 1f;
+        mClockContainer.setLayoutParams(lpC);
+        
+        LinearLayout.LayoutParams lpR=
+                (LinearLayout.LayoutParams) mRightLayout.getLayoutParams();
+        lpR.width = 0;
+        lpR.weight = 1f;
+        mRightLayout.setLayoutParams(lpR);
+
         LinearLayout.LayoutParams datePrivacySeparatorLayoutParams =
                 (LinearLayout.LayoutParams) mDatePrivacySeparator.getLayoutParams();
         LinearLayout.LayoutParams mClockIconsSeparatorLayoutParams =
@@ -634,7 +768,7 @@ public class QuickStatusBarHeader extends FrameLayout implements TunerService.Tu
             if (topCutout.isEmpty() || hasCornerCutout) {
                 datePrivacySeparatorLayoutParams.width = 0;
                 mDatePrivacySeparator.setVisibility(View.GONE);
-                mClockIconsSeparatorLayoutParams.width = 0;
+                mClockIconsSeparatorLayoutParams.width = topCutout.width();
                 setSeparatorVisibility(false);
                 mShowClockIconsSeparator = false;
                 if (sbInsets.first != 0) {
@@ -676,7 +810,6 @@ public class QuickStatusBarHeader extends FrameLayout implements TunerService.Tu
         if (mClockIconsSeparator.getVisibility() == newVisibility) return;
 
         mClockIconsSeparator.setVisibility(visible ? View.VISIBLE : View.GONE);
-        mQSCarriers.setVisibility(visible ? View.GONE : View.VISIBLE);
 
         LinearLayout.LayoutParams lp =
                 (LinearLayout.LayoutParams) mClockContainer.getLayoutParams();
@@ -690,42 +823,34 @@ public class QuickStatusBarHeader extends FrameLayout implements TunerService.Tu
         mRightLayout.setLayoutParams(lp);
     }
 
-    private void updateHeadersPadding() {
-        setContentMargins(mDatePrivacyView, 0, 0);
-        setContentMargins(mStatusIconsView, 0, 0);
+    public void updateHeadersPadding() {
+        ViewGroup.MarginLayoutParams datePrivacyLayoutParams = (ViewGroup.MarginLayoutParams) mDatePrivacyView.getLayoutParams();
+        datePrivacyLayoutParams.setMarginStart(0);
+        datePrivacyLayoutParams.setMarginEnd(0);
+        mDatePrivacyView.setLayoutParams(datePrivacyLayoutParams);
 
-        FrameLayout.LayoutParams lp = (FrameLayout.LayoutParams) getLayoutParams();
-        // Note: these are supposedly notification_side_paddings
-        int leftMargin = lp.leftMargin;
-        int rightMargin = lp.rightMargin;
+        ViewGroup.MarginLayoutParams statusIconsLayoutParams = (ViewGroup.MarginLayoutParams) mStatusIconsView.getLayoutParams();
+        statusIconsLayoutParams.setMarginStart(0);
+        statusIconsLayoutParams.setMarginEnd(0);
+        mStatusIconsView.setLayoutParams(statusIconsLayoutParams);
 
-        // The clock might collide with cutouts, let's shift it out of the way.
-        // Margin will be the reference point of paddings/translations
-        // and will have to be subtracted from cutout paddings
-        boolean headerPaddingUpdated = false;
-        int headerPaddingLeft = Math.max(mCutOutPaddingLeft, mRoundedCornerPadding) - leftMargin;
-        if (headerPaddingLeft != mHeaderPaddingLeft) {
-            mHeaderPaddingLeft = headerPaddingLeft;
-            headerPaddingUpdated = true;
-        }
-        int headerPaddingRight = Math.max(mCutOutPaddingRight, mRoundedCornerPadding) - rightMargin;
-        if (headerPaddingRight != mHeaderPaddingRight) {
-            mHeaderPaddingRight = headerPaddingRight;
-            headerPaddingUpdated = true;
+        FrameLayout.LayoutParams layoutParams = (FrameLayout.LayoutParams) getLayoutParams();
+        int leftMargin = layoutParams.leftMargin;
+        int rightMargin = layoutParams.rightMargin;
+
+        int paddingLeft = 0;
+        int paddingRight = 0;
+
+        if (mCutOutPaddingLeft > 0) {
+            paddingLeft = Math.max(Math.max(mCutOutPaddingLeft, mRoundedCornerPadding) - leftMargin, 0);
         }
 
-        // Update header animator with new paddings
-        if (headerPaddingUpdated) {
-            updateAnimators();
+        if (mCutOutPaddingRight > 0) {
+            paddingRight = Math.max(Math.max(mCutOutPaddingRight, mRoundedCornerPadding) - rightMargin, 0);
         }
-        mDatePrivacyView.setPadding(mHeaderPaddingLeft + mStatusBarPaddingStart,
-                mStatusBarPaddingTop,
-                mHeaderPaddingRight + mStatusBarPaddingEnd,
-                0);
-        mStatusIconsView.setPadding(0,
-                mStatusBarPaddingTop,
-                0,
-                0);
+
+        mDatePrivacyView.setPadding(paddingLeft, mWaterfallTopInset, paddingRight, 0);
+        mStatusIconsView.setPadding(paddingLeft, mWaterfallTopInset, paddingRight, 0);
     }
 
     public void updateEverything() {
@@ -827,6 +952,12 @@ public class QuickStatusBarHeader extends FrameLayout implements TunerService.Tu
                 mShowNetworkTraffic =
                         TunerService.parseInteger(newValue, 0) == 2;
                 setChipVisibility(mPrivacyChip.getVisibility() == View.VISIBLE);
+                break;
+            case QS_PANEL_STYLE:
+                mQsUIStyle =
+                       TunerService.parseInteger(newValue, 0);
+                mTintAlpha = mQsUIStyle == 1 || mQsUIStyle == 2 || mQsUIStyle == 10;
+                updateResources();
                 break;
             default:
                 break;

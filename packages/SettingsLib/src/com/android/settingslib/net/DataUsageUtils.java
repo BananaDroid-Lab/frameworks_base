@@ -27,7 +27,10 @@ import android.util.Log;
 
 import com.android.internal.util.ArrayUtils;
 
+import java.util.Arrays;
+import java.util.Calendar;
 import java.util.List;
+import java.util.HashSet;
 import java.util.Set;
 
 /**
@@ -66,12 +69,15 @@ public class DataUsageUtils {
         final NetworkTemplate mobileTemplate = getMobileTemplateForSubId(telephonyManager, subId);
         final String[] mergedSubscriberIds = telephonyManager
                 .createForSubscriptionId(subId).getMergedImsisFromGroup();
-        if (ArrayUtils.isEmpty(mergedSubscriberIds)) {
-            Log.i(TAG, "mergedSubscriberIds is null.");
+        if (mergedSubscriberIds == null || mergedSubscriberIds.length == 0) {
+            Log.i(TAG, "mergedSubscriberIds is null or empty.");
             return mobileTemplate;
         }
 
-        return normalizeMobileTemplate(mobileTemplate, Set.of(mergedSubscriberIds));
+        Set<String> mergedSubscriberSet = new HashSet<>();
+        mergedSubscriberSet.addAll(Arrays.asList(mergedSubscriberIds));
+
+        return normalizeMobileTemplate(mobileTemplate, mergedSubscriberSet);
     }
 
     private static NetworkTemplate normalizeMobileTemplate(
@@ -104,6 +110,26 @@ public class DataUsageUtils {
                 : new NetworkTemplate.Builder(NetworkTemplate.MATCH_MOBILE)
                         .setMeteredness(NetworkStats.METERED_YES)
                         .build();
+    }
+
+    /**
+     * Returns today's passed time in milliseconds for the current month
+     */
+    public static long getCurrentMonthMillis() {
+        final long passedMillis;
+        Calendar calendar = Calendar.getInstance();
+        int currentMonth = calendar.get(Calendar.MONTH);
+        int currentDay = calendar.get(Calendar.DAY_OF_MONTH);
+        calendar.set(Calendar.DAY_OF_MONTH, 1); 
+        calendar.set(Calendar.HOUR_OF_DAY, 0);
+        calendar.set(Calendar.MINUTE, 0);
+        calendar.set(Calendar.SECOND, 0);
+        calendar.set(Calendar.MILLISECOND, 0);
+        long startOfMonthMillis = calendar.getTimeInMillis();
+        long currentDayMillis = System.currentTimeMillis();
+        long elapsedMillis = currentDayMillis - startOfMonthMillis;
+        passedMillis = elapsedMillis - ((currentDay - 1) * 24 * 60 * 60 * 1000);
+        return passedMillis;
     }
 
     /**

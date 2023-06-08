@@ -20,18 +20,13 @@ import android.os.Bundle;
 
 import com.android.systemui.R;
 import com.android.systemui.battery.BatteryMeterViewController;
-import com.android.systemui.demomode.DemoMode;
-import com.android.systemui.demomode.DemoModeController;
 import com.android.systemui.flags.FeatureFlags;
 import com.android.systemui.flags.Flags;
-import com.android.systemui.qs.carrier.QSCarrierGroupController;
 import com.android.systemui.qs.dagger.QSScope;
 import com.android.systemui.statusbar.phone.StatusBarContentInsetsProvider;
 import com.android.systemui.statusbar.phone.StatusBarIconController;
 import com.android.systemui.statusbar.phone.StatusBarLocation;
 import com.android.systemui.statusbar.phone.StatusIconContainer;
-import com.android.systemui.statusbar.policy.Clock;
-import com.android.systemui.statusbar.policy.VariableDateViewController;
 import com.android.systemui.util.ViewController;
 
 import java.util.List;
@@ -45,21 +40,15 @@ import javax.inject.Inject;
 class QuickStatusBarHeaderController extends ViewController<QuickStatusBarHeader> implements
         ChipVisibilityListener {
 
-    private final QSCarrierGroupController mQSCarrierGroupController;
     private final QuickQSPanelController mQuickQSPanelController;
-    private final Clock mClockView;
     private final StatusBarIconController mStatusBarIconController;
-    private final DemoModeController mDemoModeController;
     private final StatusIconContainer mIconContainer;
     private final StatusBarIconController.TintedIconManager mIconManager;
-    private final DemoMode mDemoModeReceiver;
     private final QSExpansionPathInterpolator mQSExpansionPathInterpolator;
     private final FeatureFlags mFeatureFlags;
     private final BatteryMeterViewController mBatteryMeterViewController;
     private final StatusBarContentInsetsProvider mInsetsProvider;
 
-    private final VariableDateViewController mVariableDateViewControllerDateView;
-    private final VariableDateViewController mVariableDateViewControllerClockDateView;
     private final HeaderPrivacyIconsController mPrivacyIconsController;
 
     private boolean mListening;
@@ -68,39 +57,24 @@ class QuickStatusBarHeaderController extends ViewController<QuickStatusBarHeader
     QuickStatusBarHeaderController(QuickStatusBarHeader view,
             HeaderPrivacyIconsController headerPrivacyIconsController,
             StatusBarIconController statusBarIconController,
-            DemoModeController demoModeController,
             QuickQSPanelController quickQSPanelController,
-            QSCarrierGroupController.Builder qsCarrierGroupControllerBuilder,
             QSExpansionPathInterpolator qsExpansionPathInterpolator,
             FeatureFlags featureFlags,
-            VariableDateViewController.Factory variableDateViewControllerFactory,
             BatteryMeterViewController batteryMeterViewController,
             StatusBarContentInsetsProvider statusBarContentInsetsProvider,
             StatusBarIconController.TintedIconManager.Factory tintedIconManagerFactory) {
         super(view);
         mPrivacyIconsController = headerPrivacyIconsController;
         mStatusBarIconController = statusBarIconController;
-        mDemoModeController = demoModeController;
         mQuickQSPanelController = quickQSPanelController;
         mQSExpansionPathInterpolator = qsExpansionPathInterpolator;
         mFeatureFlags = featureFlags;
         mBatteryMeterViewController = batteryMeterViewController;
         mInsetsProvider = statusBarContentInsetsProvider;
 
-        mQSCarrierGroupController = qsCarrierGroupControllerBuilder
-                .setQSCarrierGroup(mView.findViewById(R.id.carrier_group))
-                .build();
-        mClockView = mView.findViewById(R.id.clock);
         mIconContainer = mView.findViewById(R.id.statusIcons);
-        mVariableDateViewControllerDateView = variableDateViewControllerFactory.create(
-                mView.requireViewById(R.id.date)
-        );
-        mVariableDateViewControllerClockDateView = variableDateViewControllerFactory.create(
-                mView.requireViewById(R.id.date_clock)
-        );
 
         mIconManager = tintedIconManagerFactory.create(mIconContainer, StatusBarLocation.QS);
-        mDemoModeReceiver = new ClockDemoModeReceiver(mClockView);
 
         // Don't need to worry about tuner settings for this icon
         mBatteryMeterViewController.ignoreTunerUpdates();
@@ -120,10 +94,6 @@ class QuickStatusBarHeaderController extends ViewController<QuickStatusBarHeader
         mIconContainer.setShouldRestrictIcons(false);
         mStatusBarIconController.addIconGroup(mIconManager);
 
-        mView.setIsSingleCarrier(mQSCarrierGroupController.isSingleCarrier());
-        mQSCarrierGroupController
-                .setOnSingleCarrierChangedListener(mView::setIsSingleCarrier);
-
         List<String> rssiIgnoredSlots;
 
         if (mFeatureFlags.isEnabled(Flags.COMBINED_STATUS_BAR_SIGNAL_ICONS)) {
@@ -139,25 +109,16 @@ class QuickStatusBarHeaderController extends ViewController<QuickStatusBarHeader
 
         mView.onAttach(mIconManager, mQSExpansionPathInterpolator, rssiIgnoredSlots,
                 mInsetsProvider, mFeatureFlags.isEnabled(Flags.COMBINED_QS_HEADERS));
-
-        mDemoModeController.addCallback(mDemoModeReceiver);
-
-        mVariableDateViewControllerDateView.init();
-        mVariableDateViewControllerClockDateView.init();
     }
 
     @Override
     protected void onViewDetached() {
         mPrivacyIconsController.onParentInvisible();
         mStatusBarIconController.removeIconGroup(mIconManager);
-        mQSCarrierGroupController.setOnSingleCarrierChangedListener(null);
-        mDemoModeController.removeCallback(mDemoModeReceiver);
         setListening(false);
     }
 
     public void setListening(boolean listening) {
-        mQSCarrierGroupController.setListening(listening);
-
         if (listening == mListening) {
             return;
         }
@@ -173,7 +134,7 @@ class QuickStatusBarHeaderController extends ViewController<QuickStatusBarHeader
             mPrivacyIconsController.startListening();
         } else {
             mPrivacyIconsController.stopListening();
-        }
+        }        
     }
 
     @Override
@@ -183,35 +144,5 @@ class QuickStatusBarHeaderController extends ViewController<QuickStatusBarHeader
 
     public void setContentMargins(int marginStart, int marginEnd) {
         mQuickQSPanelController.setContentMargins(marginStart, marginEnd);
-    }
-
-    private static class ClockDemoModeReceiver implements DemoMode {
-        private Clock mClockView;
-
-        @Override
-        public List<String> demoCommands() {
-            return List.of(COMMAND_CLOCK);
-        }
-
-        ClockDemoModeReceiver(Clock clockView) {
-            mClockView = clockView;
-        }
-
-        @Override
-        public void dispatchDemoCommand(String command, Bundle args) {
-            mClockView.dispatchDemoCommand(command, args);
-        }
-
-        @Override
-        public void onDemoModeStarted() {
-            if (mClockView != null) {
-                mClockView.onDemoModeStarted();
-            }
-        }
-
-        @Override
-        public void onDemoModeFinished() {
-            mClockView.onDemoModeFinished();
-        }
     }
 }

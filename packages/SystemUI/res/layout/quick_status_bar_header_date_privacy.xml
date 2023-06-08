@@ -15,76 +15,36 @@
 ** limitations under the License.
 -->
 <LinearLayout
-    xmlns:android="http://schemas.android.com/apk/res/android"
-    xmlns:systemui="http://schemas.android.com/apk/res-auto"
-    android:id="@+id/quick_status_bar_date_privacy"
-    android:layout_width="match_parent"
-    android:layout_height="@*android:dimen/quick_qs_offset_height"
-    android:clipChildren="false"
-    android:clipToPadding="false"
-    android:gravity="center"
+    android:gravity="top"
     android:layout_gravity="top"
     android:orientation="horizontal"
-    android:clickable="true">
+    android:id="@+id/quick_status_bar_date_privacy"
+    android:clickable="true"
+    android:clipChildren="false"
+    android:clipToPadding="false"
+    android:layout_width="fill_parent"
+    android:layout_height="wrap_content"
+    android:importantForAccessibility="no"
+    xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:systemui="http://schemas.android.com/apk/res-auto">
 
     <FrameLayout
-        android:id="@+id/date_container"
-        android:layout_width="0dp"
-        android:layout_height="match_parent"
-        android:layout_weight="1"
-        android:gravity="center_vertical|start" >
-        
-        <com.android.systemui.statusbar.policy.VariableDateView
-            android:id="@+id/date"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:layout_gravity="start|center_vertical"
-            android:gravity="center_vertical"
-            android:singleLine="true"
-            android:textAppearance="@style/TextAppearance.QS.Status"
-            systemui:longDatePattern="@string/abbrev_wday_month_day_no_year_alarm"
-            systemui:shortDatePattern="@string/abbrev_month_day_no_year"
-            systemui:showDark="false"
-        />
-    </FrameLayout>
-
-    <!-- We want this to be centered (to align with notches). In order to do that, the following
-         has to hold (in portrait):
-         * date_container and privacy_container must have the same width and weight
-         -->
-    <android.widget.Space
-        android:id="@+id/space"
-        android:layout_width="0dp"
-        android:layout_height="match_parent"
-        android:layout_gravity="center_vertical|center_horizontal"
-        android:visibility="gone" />
-
-    <FrameLayout
+        android:gravity="start|center"
         android:id="@+id/privacy_container"
-        android:layout_width="0dp"
-        android:layout_height="match_parent"
-        android:minHeight="48dp"
-        android:layout_weight="1"
-        android:gravity="center_vertical|end" >
+        android:layout_width="wrap_content"
+        android:layout_height="fill_parent"
+        android:minHeight="40.0dip"
+        android:layout_weight="0">
 
         <include layout="@layout/ongoing_privacy_chip" />
 
     </FrameLayout>
-
-    <com.android.systemui.statusbar.policy.NetworkTraffic
-        android:id="@+id/network_traffic"
-        android:layout_width="wrap_content"
-        android:layout_height="match_parent"
-        android:visibility="gone" />
-
-    <com.android.systemui.battery.BatteryMeterView
-        android:id="@+id/batteryIcon"
-        android:layout_height="match_parent"
-        android:layout_width="wrap_content"
-        android:gravity="center_vertical|end"
-        android:singleLine="true"
-        systemui:textAppearance="@style/TextAppearance.QS.Status"
-        android:paddingStart="2dp"
-        android:visibility="gone" />
+    
+    <android.widget.Space
+        android:layout_gravity="center"
+        android:id="@+id/space"
+        android:visibility="gone"
+        android:layout_width="0.0dip"
+        android:layout_height="fill_parent" />
 
 </LinearLayout>
