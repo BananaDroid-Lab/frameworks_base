@@ -95,6 +95,4 @@
 
     <!-- Body font family -->
     <string name="config_bodyFontFamily">@*android:string/config_bodyFontFamily</string>
-=======
->>>>>>> parent of e3ab6a985df9... base: QS tiles layout customizations [1/2]
 </resources>
