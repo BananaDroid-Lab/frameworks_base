@@ -52,10 +52,10 @@ public class MarshalQueryableRange<T extends Comparable<? super T>>
              * and then get the marshaler for that managed type.
              */
             ParameterizedType paramType;
-            try {
+            if (typeReference.getType() instanceof ParameterizedType) {
                 paramType = (ParameterizedType) typeReference.getType();
-            } catch (ClassCastException e) {
-                throw new AssertionError("Raw use of Range is not supported", e);
+            } else {
+                throw new AssertionError("Raw use of Range is not supported");
             }
             Type actualTypeArgument = paramType.getActualTypeArguments()[0];
 

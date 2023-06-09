@@ -1122,12 +1122,11 @@ public class BaseBundle {
         if (o == null) {
             return defaultValue;
         }
-        try {
+        if (o instanceof Boolean) {
             return (Boolean) o;
-        } catch (ClassCastException e) {
-            typeWarning(key, o, "Boolean", defaultValue, e);
-            return defaultValue;
         }
+        typeWarning(key, o, "Boolean", defaultValue, new ClassCastException());
+        return defaultValue;
     }
 
     /**

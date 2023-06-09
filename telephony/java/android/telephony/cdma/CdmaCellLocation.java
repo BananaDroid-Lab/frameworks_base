@@ -174,24 +174,15 @@ public class CdmaCellLocation extends CellLocation {
 
     @Override
     public boolean equals(Object o) {
-        CdmaCellLocation s;
-
-        try {
-            s = (CdmaCellLocation)o;
-        } catch (ClassCastException ex) {
-            return false;
+        if (o instanceof CdmaCellLocation) {
+            CdmaCellLocation s = (CdmaCellLocation) o;
+            return (equalsHandlesNulls(this.mBaseStationId, s.mBaseStationId)
+                    && equalsHandlesNulls(this.mBaseStationLatitude, s.mBaseStationLatitude)
+                    && equalsHandlesNulls(this.mBaseStationLongitude, s.mBaseStationLongitude)
+                    && equalsHandlesNulls(this.mSystemId, s.mSystemId)
+                    && equalsHandlesNulls(this.mNetworkId, s.mNetworkId));
         }
-
-        if (o == null) {
-            return false;
-        }
-
-        return (equalsHandlesNulls(this.mBaseStationId, s.mBaseStationId) &&
-                equalsHandlesNulls(this.mBaseStationLatitude, s.mBaseStationLatitude) &&
-                equalsHandlesNulls(this.mBaseStationLongitude, s.mBaseStationLongitude) &&
-                equalsHandlesNulls(this.mSystemId, s.mSystemId) &&
-                equalsHandlesNulls(this.mNetworkId, s.mNetworkId)
-        );
+        return false;
     }
 
     @Override

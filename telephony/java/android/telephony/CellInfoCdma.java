@@ -107,13 +107,12 @@ public final class CellInfoCdma extends CellInfo implements Parcelable {
         if (!super.equals(other)) {
             return false;
         }
-        try {
+        if (other instanceof CellInfoCdma) {
             CellInfoCdma o = (CellInfoCdma) other;
             return mCellIdentityCdma.equals(o.mCellIdentityCdma)
                     && mCellSignalStrengthCdma.equals(o.mCellSignalStrengthCdma);
-        } catch (ClassCastException e) {
-            return false;
         }
+        return false;
     }
 
     @Override

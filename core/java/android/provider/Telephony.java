@@ -1367,10 +1367,12 @@ public final class Telephony {
              */
             public static SmsMessage[] getMessagesFromIntent(Intent intent) {
                 Object[] messages;
-                try {
+                if (intent.getSerializableExtra("pdus") instanceof Object[]) {
                     messages = (Object[]) intent.getSerializableExtra("pdus");
-                } catch (ClassCastException e) {
-                    Rlog.e(TAG, "getMessagesFromIntent: " + e);
+                } else {
+                    Rlog.e(TAG,
+                            "Invalid intent.getSerializableExtra(\"pdus\"): "
+                                    + intent.getSerializableExtra("pdus"));
                     return null;
                 }
 

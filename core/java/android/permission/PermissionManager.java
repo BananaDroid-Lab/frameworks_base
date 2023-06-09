@@ -1574,17 +1574,11 @@ public final class PermissionManager {
         @Override
         public boolean equals(@Nullable Object rval) {
             // N.B. pid doesn't count toward equality!
-            if (rval == null) {
-                return false;
+            if (rval instanceof PermissionQuery) {
+                PermissionQuery other = (PermissionQuery) rval;
+                return uid == other.uid && Objects.equals(permission, other.permission);
             }
-            PermissionQuery other;
-            try {
-                other = (PermissionQuery) rval;
-            } catch (ClassCastException ex) {
-                return false;
-            }
-            return uid == other.uid
-                    && Objects.equals(permission, other.permission);
+            return false;
         }
     }
 
@@ -1647,18 +1641,12 @@ public final class PermissionManager {
 
         @Override
         public boolean equals(@Nullable Object rval) {
-            if (rval == null) {
-                return false;
+            if (rval instanceof PackageNamePermissionQuery) {
+                PackageNamePermissionQuery other = (PackageNamePermissionQuery) rval;
+                return Objects.equals(permName, other.permName)
+                        && Objects.equals(pkgName, other.pkgName) && userId == other.userId;
             }
-            PackageNamePermissionQuery other;
-            try {
-                other = (PackageNamePermissionQuery) rval;
-            } catch (ClassCastException ex) {
-                return false;
-            }
-            return Objects.equals(permName, other.permName)
-                    && Objects.equals(pkgName, other.pkgName)
-                    && userId == other.userId;
+            return false;
         }
     }
 

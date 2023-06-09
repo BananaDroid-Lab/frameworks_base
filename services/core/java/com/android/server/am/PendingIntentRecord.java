@@ -140,10 +140,7 @@ public final class PendingIntentRecord extends IIntentSender.Stub {
 
         @Override
         public boolean equals(Object otherObj) {
-            if (otherObj == null) {
-                return false;
-            }
-            try {
+            if (otherObj instanceof Key) {
                 Key other = (Key)otherObj;
                 if (type != other.type) {
                     return false;
@@ -182,7 +179,6 @@ public final class PendingIntentRecord extends IIntentSender.Stub {
                     return false;
                 }
                 return true;
-            } catch (ClassCastException e) {
             }
             return false;
         }

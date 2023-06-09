@@ -105,13 +105,12 @@ public final class CellInfoGsm extends CellInfo implements Parcelable {
         if (!super.equals(other)) {
             return false;
         }
-        try {
+        if (other instanceof CellInfoGsm) {
             CellInfoGsm o = (CellInfoGsm) other;
             return mCellIdentityGsm.equals(o.mCellIdentityGsm)
                     && mCellSignalStrengthGsm.equals(o.mCellSignalStrengthGsm);
-        } catch (ClassCastException e) {
-            return false;
         }
+        return false;
     }
 
     @Override

@@ -108,20 +108,12 @@ public class GsmCellLocation extends CellLocation {
 
     @Override
     public boolean equals(Object o) {
-        GsmCellLocation s;
-
-        try {
-            s = (GsmCellLocation)o;
-        } catch (ClassCastException ex) {
-            return false;
+        if (o instanceof GsmCellLocation) {
+            GsmCellLocation s = (GsmCellLocation) o;
+            return equalsHandlesNulls(mLac, s.mLac) && equalsHandlesNulls(mCid, s.mCid)
+                    && equalsHandlesNulls(mPsc, s.mPsc);
         }
-
-        if (o == null) {
-            return false;
-        }
-
-        return equalsHandlesNulls(mLac, s.mLac) && equalsHandlesNulls(mCid, s.mCid)
-            && equalsHandlesNulls(mPsc, s.mPsc);
+        return false;
     }
 
     @Override

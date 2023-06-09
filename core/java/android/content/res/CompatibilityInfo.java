@@ -624,16 +624,14 @@ public class CompatibilityInfo implements Parcelable {
         if (this == o) {
             return true;
         }
-        try {
-            CompatibilityInfo oc = (CompatibilityInfo)o;
-            if (mCompatibilityFlags != oc.mCompatibilityFlags) return false;
-            if (applicationDensity != oc.applicationDensity) return false;
-            if (applicationScale != oc.applicationScale) return false;
-            if (applicationInvertedScale != oc.applicationInvertedScale) return false;
-            return true;
-        } catch (ClassCastException e) {
-            return false;
+        if (o instanceof CompatibilityInfo) {
+            CompatibilityInfo oc = (CompatibilityInfo) o;
+            return mCompatibilityFlags == oc.mCompatibilityFlags
+                    && applicationDensity == oc.applicationDensity
+                    && applicationScale == oc.applicationScale
+                    && applicationInvertedScale == oc.applicationInvertedScale;
         }
+        return false;
     }
 
     @Override

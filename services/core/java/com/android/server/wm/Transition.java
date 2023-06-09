@@ -229,13 +229,13 @@ class Transition implements BLASTSyncEngine.TransactionReadyListener {
 
     @Nullable
     static Transition fromBinder(@Nullable IBinder token) {
-        if (token == null) return null;
-        try {
+        if (token instanceof Token) {
             return ((Token) token).mTransition.get();
-        } catch (ClassCastException e) {
-            Slog.w(TAG, "Invalid transition token: " + token, e);
-            return null;
         }
+        if (token != null) {
+            Slog.w(TAG, "Invalid transition token: " + token);
+        }
+        return null;
     }
 
     @NonNull

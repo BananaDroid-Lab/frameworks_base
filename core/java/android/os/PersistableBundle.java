@@ -222,15 +222,13 @@ public final class PersistableBundle extends BaseBundle implements Cloneable, Pa
     public PersistableBundle getPersistableBundle(@Nullable String key) {
         unparcel();
         Object o = mMap.get(key);
-        if (o == null) {
-            return null;
-        }
-        try {
+        if (o instanceof PersistableBundle) {
             return (PersistableBundle) o;
-        } catch (ClassCastException e) {
-            typeWarning(key, o, "Bundle", e);
-            return null;
         }
+        if (o != null) {
+            typeWarning(key, o, "Bundle", new ClassCastException());
+        }
+        return null;
     }
 
     public static final @android.annotation.NonNull Parcelable.Creator<PersistableBundle> CREATOR =

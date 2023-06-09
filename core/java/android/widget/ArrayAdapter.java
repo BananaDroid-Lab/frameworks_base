@@ -427,24 +427,23 @@ public class ArrayAdapter<T> extends BaseAdapter implements Filterable, ThemedSp
             view = convertView;
         }
 
-        try {
-            if (mFieldId == 0) {
-                //  If no custom field is assigned, assume the whole resource is a TextView
+        if (mFieldId == 0) {
+            //  If no custom field is assigned, assume the whole resource is a TextView
+            if (view instanceof TextView) {
                 text = (TextView) view;
             } else {
-                //  Otherwise, find the TextView field within the layout
-                text = view.findViewById(mFieldId);
-
-                if (text == null) {
-                    throw new RuntimeException("Failed to find view with ID "
-                            + mContext.getResources().getResourceName(mFieldId)
-                            + " in item layout");
-                }
+                Log.e("ArrayAdapter", "You must supply a resource ID for a TextView");
+                throw new IllegalStateException(
+                        "ArrayAdapter requires the resource ID to be a TextView");
             }
-        } catch (ClassCastException e) {
-            Log.e("ArrayAdapter", "You must supply a resource ID for a TextView");
-            throw new IllegalStateException(
-                    "ArrayAdapter requires the resource ID to be a TextView", e);
+        } else {
+            //  Otherwise, find the TextView field within the layout
+            text = view.findViewById(mFieldId);
+
+            if (text == null) {
+                throw new RuntimeException("Failed to find view with ID "
+                        + mContext.getResources().getResourceName(mFieldId) + " in item layout");
+            }
         }
 
         final T item = getItem(position);

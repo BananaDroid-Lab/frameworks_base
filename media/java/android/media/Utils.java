@@ -225,10 +225,11 @@ public class Utils {
         if (o == null) {
             return fallback;
         }
-        try {
-            return Size.parseSize((String) o);
-        } catch (ClassCastException e) {
-        } catch (NumberFormatException e) {
+        if (o instanceof String) {
+            try {
+                return Size.parseSize((String) o);
+            } catch (NumberFormatException e) {
+            }
         }
         Log.w(TAG, "could not parse size '" + o + "'");
         return fallback;
@@ -238,11 +239,12 @@ public class Utils {
         if (o == null) {
             return fallback;
         }
-        try {
-            String s = (String)o;
-            return Integer.parseInt(s);
-        } catch (ClassCastException e) {
-        } catch (NumberFormatException e) {
+        if (o instanceof String) {
+            try {
+                String s = (String) o;
+                return Integer.parseInt(s);
+            } catch (NumberFormatException e) {
+            }
         }
         Log.w(TAG, "could not parse integer '" + o + "'");
         return fallback;
@@ -252,19 +254,19 @@ public class Utils {
         if (o == null) {
             return fallback;
         }
-        try {
-            String s = (String)o;
-            int ix = s.indexOf('-');
-            if (ix >= 0) {
-                return Range.create(
-                        Integer.parseInt(s.substring(0, ix), 10),
-                        Integer.parseInt(s.substring(ix + 1), 10));
+        if (o instanceof String) {
+            try {
+                String s = (String) o;
+                int ix = s.indexOf('-');
+                if (ix >= 0) {
+                    return Range.create(Integer.parseInt(s.substring(0, ix), 10),
+                            Integer.parseInt(s.substring(ix + 1), 10));
+                }
+                int value = Integer.parseInt(s);
+                return Range.create(value, value);
+            } catch (NumberFormatException e) {
+            } catch (IllegalArgumentException e) {
             }
-            int value = Integer.parseInt(s);
-            return Range.create(value, value);
-        } catch (ClassCastException e) {
-        } catch (NumberFormatException e) {
-        } catch (IllegalArgumentException e) {
         }
         Log.w(TAG, "could not parse integer range '" + o + "'");
         return fallback;

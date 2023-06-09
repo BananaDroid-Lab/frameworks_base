@@ -253,14 +253,11 @@ public class Signature implements Parcelable {
 
     @Override
     public boolean equals(@Nullable Object obj) {
-        try {
-            if (obj != null) {
-                Signature other = (Signature)obj;
-                // Note, some classes, such as SigningDetails, rely on equals
-                // only comparing the mSignature arrays without the flags.
-                return this == other || Arrays.equals(mSignature, other.mSignature);
-            }
-        } catch (ClassCastException e) {
+        if (obj instanceof Signature) {
+            Signature other = (Signature) obj;
+            // Note, some classes, such as SigningDetails, rely on equals
+            // only comparing the mSignature arrays without the flags.
+            return this == other || Arrays.equals(mSignature, other.mSignature);
         }
         return false;
     }

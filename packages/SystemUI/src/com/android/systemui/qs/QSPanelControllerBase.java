@@ -272,13 +272,11 @@ public abstract class QSPanelControllerBase<T extends QSPanel> extends ViewContr
                 new TileRecord(tile, mHost.createTileView(getContext(), tile, collapsedView));
         // TODO(b/250618218): Remove the QSLogger in QSTileViewImpl once we know the root cause of
         // b/250618218.
-        try {
-            QSTileViewImpl qsTileView = (QSTileViewImpl) (r.tileView);
-            if (qsTileView != null) {
-                qsTileView.setQsLogger(mQSLogger);
-            }
-        } catch (ClassCastException e) {
-            Log.e(TAG, "Failed to cast QSTileView to QSTileViewImpl", e);
+        if (r.tileView instanceof QSTileViewImpl) {
+            QSTileViewImpl qsTileView = (QSTileViewImpl) r.tileView;
+            qsTileView.setQsLogger(mQSLogger);
+        } else if (r.tileView != null) {
+            Log.e(TAG, "Failed to cast QSTileView to QSTileViewImpl");
         }
         mView.addTile(r);
         mRecords.add(r);

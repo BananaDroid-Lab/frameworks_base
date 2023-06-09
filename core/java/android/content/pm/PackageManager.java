@@ -10373,18 +10373,13 @@ public abstract class PackageManager {
 
         @Override
         public boolean equals(@Nullable Object rval) {
-            if (rval == null) {
-                return false;
+            if (rval instanceof ApplicationInfoQuery) {
+                ApplicationInfoQuery other = (ApplicationInfoQuery) rval;
+                return Objects.equals(packageName, other.packageName)
+                        && flags == other.flags
+                        && userId == other.userId;
             }
-            ApplicationInfoQuery other;
-            try {
-                other = (ApplicationInfoQuery) rval;
-            } catch (ClassCastException ex) {
-                return false;
-            }
-            return Objects.equals(packageName, other.packageName)
-                    && flags == other.flags
-                    && userId == other.userId;
+            return false;
         }
     }
 
@@ -10475,18 +10470,13 @@ public abstract class PackageManager {
 
         @Override
         public boolean equals(@Nullable Object rval) {
-            if (rval == null) {
-                return false;
+            if (rval instanceof PackageInfoQuery) {
+                PackageInfoQuery other = (PackageInfoQuery) rval;
+                return Objects.equals(packageName, other.packageName)
+                        && flags == other.flags
+                        && userId == other.userId;
             }
-            PackageInfoQuery other;
-            try {
-                other = (PackageInfoQuery) rval;
-            } catch (ClassCastException ex) {
-                return false;
-            }
-            return Objects.equals(packageName, other.packageName)
-                    && flags == other.flags
-                    && userId == other.userId;
+            return false;
         }
     }
 

@@ -46,16 +46,18 @@ public class ProgramPort extends FieldPort {
             try {
                 Object fieldValue = mField.get(mFilter);
                 if (fieldValue != null) {
-                    Program program = (Program)fieldValue;
-                    program.setHostValue(mVarName, mValue);
-                    mValueWaiting = false;
+                    if (fieldValue instanceof Program) {
+                        Program program = (Program) fieldValue;
+                        program.setHostValue(mVarName, mValue);
+                        mValueWaiting = false;
+                    } else {
+                        throw new RuntimeException("Non Program field '" + mField.getName()
+                                + "' annotated with ProgramParameter!");
+                    }
                 }
             } catch (IllegalAccessException e) {
                 throw new RuntimeException(
-                    "Access to program field '" + mField.getName() + "' was denied!");
-            } catch (ClassCastException e) {
-                throw new RuntimeException("Non Program field '" + mField.getName()
-                    + "' annotated with ProgramParameter!");
+                        "Access to program field '" + mField.getName() + "' was denied!");
             }
         }
     }

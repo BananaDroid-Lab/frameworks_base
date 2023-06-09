@@ -320,21 +320,25 @@ public final class ContentValues implements Parcelable {
      */
     public Long getAsLong(String key) {
         Object value = mMap.get(key);
-        try {
-            return value != null ? ((Number) value).longValue() : null;
-        } catch (ClassCastException e) {
-            if (value instanceof CharSequence) {
-                try {
-                    return Long.valueOf(value.toString());
-                } catch (NumberFormatException e2) {
-                    Log.e(TAG, "Cannot parse Long value for " + value + " at key " + key);
-                    return null;
-                }
-            } else {
-                Log.e(TAG, "Cannot cast value for " + key + " to a Long: " + value, e);
+        if (value == null) {
+            return null;
+        }
+
+        if (value instanceof Number) {
+            return ((Number) value).longValue();
+        }
+
+        if (value instanceof CharSequence) {
+            try {
+                return Long.valueOf(value.toString());
+            } catch (NumberFormatException e2) {
+                Log.e(TAG, "Cannot parse Long value for " + value + " at key " + key);
                 return null;
             }
         }
+
+        Log.e(TAG, "Cannot cast value for " + key + " to a Long: " + value);
+        return null;
     }
 
     /**
@@ -345,21 +349,25 @@ public final class ContentValues implements Parcelable {
      */
     public Integer getAsInteger(String key) {
         Object value = mMap.get(key);
-        try {
-            return value != null ? ((Number) value).intValue() : null;
-        } catch (ClassCastException e) {
-            if (value instanceof CharSequence) {
-                try {
-                    return Integer.valueOf(value.toString());
-                } catch (NumberFormatException e2) {
-                    Log.e(TAG, "Cannot parse Integer value for " + value + " at key " + key);
-                    return null;
-                }
-            } else {
-                Log.e(TAG, "Cannot cast value for " + key + " to a Integer: " + value, e);
+        if (value == null) {
+            return null;
+        }
+
+        if (value instanceof Number) {
+            return ((Number) value).intValue();
+        }
+
+        if (value instanceof CharSequence) {
+            try {
+                return Integer.valueOf(value.toString());
+            } catch (NumberFormatException e2) {
+                Log.e(TAG, "Cannot parse Integer value for " + value + " at key " + key);
                 return null;
             }
         }
+
+        Log.e(TAG, "Cannot cast value for " + key + " to a Integer: " + value);
+        return null;
     }
 
     /**
@@ -370,21 +378,25 @@ public final class ContentValues implements Parcelable {
      */
     public Short getAsShort(String key) {
         Object value = mMap.get(key);
-        try {
-            return value != null ? ((Number) value).shortValue() : null;
-        } catch (ClassCastException e) {
-            if (value instanceof CharSequence) {
-                try {
-                    return Short.valueOf(value.toString());
-                } catch (NumberFormatException e2) {
-                    Log.e(TAG, "Cannot parse Short value for " + value + " at key " + key);
-                    return null;
-                }
-            } else {
-                Log.e(TAG, "Cannot cast value for " + key + " to a Short: " + value, e);
+        if (value == null) {
+            return null;
+        }
+
+        if (value instanceof Number) {
+            return ((Number) value).shortValue();
+        }
+
+        if (value instanceof CharSequence) {
+            try {
+                return Short.valueOf(value.toString());
+            } catch (NumberFormatException e2) {
+                Log.e(TAG, "Cannot parse Short value for " + value + " at key " + key);
                 return null;
             }
         }
+
+        Log.e(TAG, "Cannot cast value for " + key + " to a Short: " + value);
+        return null;
     }
 
     /**

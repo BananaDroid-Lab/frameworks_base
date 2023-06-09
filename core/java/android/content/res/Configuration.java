@@ -2167,9 +2167,8 @@ public final class Configuration implements Parcelable, Comparable<Configuration
     }
 
     public boolean equals(@Nullable Object that) {
-        try {
+        if (that instanceof Configuration) {
             return equals((Configuration)that);
-        } catch (ClassCastException e) {
         }
         return false;
     }

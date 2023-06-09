@@ -53,10 +53,10 @@ public class MarshalQueryablePair<T1, T2>
              * and then get the marshalers for that managed type.
              */
             ParameterizedType paramType;
-            try {
+            if (typeReference.getType() instanceof ParameterizedType) {
                 paramType = (ParameterizedType) typeReference.getType();
-            } catch (ClassCastException e) {
-                throw new AssertionError("Raw use of Pair is not supported", e);
+            } else {
+                throw new AssertionError("Raw use of Pair is not supported");
             }
 
             // Get type marshaler for T1

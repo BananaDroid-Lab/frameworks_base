@@ -142,22 +142,14 @@ public final class RadioAccessSpecifier implements Parcelable {
     }
 
     @Override
-    public boolean equals (Object o) {
-        RadioAccessSpecifier ras;
-
-        try {
-            ras = (RadioAccessSpecifier) o;
-        } catch (ClassCastException ex) {
-            return false;
+    public boolean equals(Object o) {
+        if (o instanceof RadioAccessSpecifier) {
+            RadioAccessSpecifier ras = (RadioAccessSpecifier) o;
+            return (mRadioAccessNetwork == ras.mRadioAccessNetwork
+                    && Arrays.equals(mBands, ras.mBands)
+                    && Arrays.equals(mChannels, ras.mChannels));
         }
-
-        if (o == null) {
-            return false;
-        }
-
-        return (mRadioAccessNetwork == ras.mRadioAccessNetwork
-                && Arrays.equals(mBands, ras.mBands)
-                && Arrays.equals(mChannels, ras.mChannels));
+        return false;
     }
 
     @Override

@@ -270,13 +270,9 @@ public final class CameraExtensionSessionImpl extends CameraExtensionSession {
         }
 
         if (mPreviewProcessorType == IPreviewExtenderImpl.PROCESSOR_TYPE_IMAGE_PROCESSOR) {
-            try {
-                mPreviewImageProcessor = new CameraExtensionForwardProcessor(
-                        mPreviewExtender.getPreviewImageProcessor(), repeatingSurfaceInfo.mFormat,
-                        repeatingSurfaceInfo.mUsage, mHandler);
-            } catch (ClassCastException e) {
-                throw new UnsupportedOperationException("Failed casting preview processor!");
-            }
+            mPreviewImageProcessor =
+                    new CameraExtensionForwardProcessor(mPreviewExtender.getPreviewImageProcessor(),
+                            repeatingSurfaceInfo.mFormat, repeatingSurfaceInfo.mUsage, mHandler);
             mPreviewImageProcessor.onImageFormatUpdate(
                     CameraExtensionCharacteristics.PROCESSING_INPUT_FORMAT);
             mPreviewImageProcessor.onResolutionUpdate(new Size(repeatingSurfaceInfo.mWidth,
@@ -289,11 +285,7 @@ public final class CameraExtensionSessionImpl extends CameraExtensionSession {
             mCameraRepeatingSurface = mRepeatingRequestImageReader.getSurface();
         } else if (mPreviewProcessorType ==
                 IPreviewExtenderImpl.PROCESSOR_TYPE_REQUEST_UPDATE_ONLY) {
-            try {
-                mPreviewRequestUpdateProcessor = mPreviewExtender.getRequestUpdateProcessor();
-            } catch (ClassCastException e) {
-                throw new UnsupportedOperationException("Failed casting preview processor!");
-            }
+            mPreviewRequestUpdateProcessor = mPreviewExtender.getRequestUpdateProcessor();
             mRepeatingRequestImageReader = ImageReader.newInstance(repeatingSurfaceInfo.mWidth,
                     repeatingSurfaceInfo.mHeight,
                     CameraExtensionCharacteristics.NON_PROCESSING_INPUT_FORMAT,

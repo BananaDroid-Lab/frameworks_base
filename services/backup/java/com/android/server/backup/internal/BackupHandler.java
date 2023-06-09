@@ -256,13 +256,13 @@ public class BackupHandler extends Handler {
             }
 
             case MSG_BACKUP_RESTORE_STEP: {
-                try {
+                if (msg.obj instanceof BackupRestoreTask) {
                     BackupRestoreTask task = (BackupRestoreTask) msg.obj;
                     if (MORE_DEBUG) {
                         Slog.v(TAG, "Got next step for " + task + ", executing");
                     }
                     task.execute();
-                } catch (ClassCastException e) {
+                } else {
                     Slog.e(TAG, "Invalid backup/restore task in flight, obj=" + msg.obj);
                 }
                 break;

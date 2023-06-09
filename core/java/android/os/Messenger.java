@@ -74,13 +74,8 @@ public final class Messenger implements Parcelable {
      * is returned then they both point to the same Handler.
      */
     public boolean equals(@Nullable Object otherObj) {
-        if (otherObj == null) {
-            return false;
-        }
-        try {
-            return mTarget.asBinder().equals(((Messenger)otherObj)
-                    .mTarget.asBinder());
-        } catch (ClassCastException e) {
+        if (otherObj instanceof Messenger) {
+            return mTarget.asBinder().equals(((Messenger) otherObj).mTarget.asBinder());
         }
         return false;
     }

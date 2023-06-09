@@ -8560,20 +8560,15 @@ public final class ContactsContract {
 
         @Override
         public boolean equals(Object obj) {
-            if (obj == null) return false;
             if (obj == this) return true;
-
-            SimAccount toCompare;
-            try {
-                toCompare = (SimAccount) obj;
-            } catch (ClassCastException ex) {
-                return false;
+            if (obj instanceof SimAccount) {
+                SimAccount toCompare = (SimAccount) obj;
+                return mSimSlotIndex == toCompare.mSimSlotIndex
+                        && mEfType == toCompare.mEfType
+                        && Objects.equals(mAccountName, toCompare.mAccountName)
+                        && Objects.equals(mAccountType, toCompare.mAccountType);
             }
-
-            return mSimSlotIndex == toCompare.mSimSlotIndex
-                    && mEfType == toCompare.mEfType
-                    && Objects.equals(mAccountName, toCompare.mAccountName)
-                    && Objects.equals(mAccountType, toCompare.mAccountType);
+            return false;
         }
 
         @Override
