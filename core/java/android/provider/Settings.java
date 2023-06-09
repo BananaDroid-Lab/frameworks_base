@@ -6633,11 +6633,6 @@ public final class Settings {
         /**
          * @hide
          */
-        public static final String QS_UI_STYLE = "qs_ui_style";
-
-        /**
-         * @hide
-         */
         public static final String QS_PANEL_STYLE = "qs_panel_style";
 
         /**
