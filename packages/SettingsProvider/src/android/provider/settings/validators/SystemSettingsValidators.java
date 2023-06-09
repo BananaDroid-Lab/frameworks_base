@@ -16,7 +16,6 @@
 
 package android.provider.settings.validators;
 
-import static android.provider.settings.validators.SettingsValidators.ANY_INTEGER_VALIDATOR;
 import static android.provider.settings.validators.SettingsValidators.ANY_STRING_VALIDATOR;
 import static android.provider.settings.validators.SettingsValidators.BOOLEAN_VALIDATOR;
 import static android.provider.settings.validators.SettingsValidators.COMPONENT_NAME_VALIDATOR;
@@ -213,8 +212,6 @@ public class SystemSettingsValidators {
         VALIDATORS.put(System.SWIPE_TO_SCREENSHOT, BOOLEAN_VALIDATOR);
         VALIDATORS.put(System.QS_TILE_LABEL_HIDE, BOOLEAN_VALIDATOR);
         VALIDATORS.put(System.QS_TILE_VERTICAL_LAYOUT, BOOLEAN_VALIDATOR);
-        VALIDATORS.put(System.QS_LAYOUT, ANY_INTEGER_VALIDATOR);
-        VALIDATORS.put(System.QQS_LAYOUT, ANY_INTEGER_VALIDATOR);
         VALIDATORS.put(System.INCREASING_RING, BOOLEAN_VALIDATOR);
         VALIDATORS.put(System.INCREASING_RING_START_VOLUME, new InclusiveFloatRangeValidator(0, 1));
         VALIDATORS.put(System.INCREASING_RING_RAMP_UP_TIME, new InclusiveFloatRangeValidator(5, 60));

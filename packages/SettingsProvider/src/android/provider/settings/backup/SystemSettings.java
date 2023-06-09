@@ -89,8 +89,6 @@ public class SystemSettings {
         Settings.System.NOTIFICATION_LIGHT_PULSE,
         Settings.System.QS_TILE_LABEL_HIDE,
         Settings.System.QS_TILE_VERTICAL_LAYOUT,
-        Settings.System.QS_LAYOUT,
-        Settings.System.QQS_LAYOUT,
         Settings.System.ENABLE_FLOATING_ROTATION_BUTTON,
         Settings.System.LOCK_HIDE_STATUS_BAR,
         Settings.System.NAVIGATION_BAR_IME_SPACE,

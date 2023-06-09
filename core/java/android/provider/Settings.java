@@ -6063,16 +6063,6 @@ public final class Settings {
         public static final String QS_TILE_VERTICAL_LAYOUT = "qs_tile_vertical_layout";
 
         /**
-         * @hide
-         */
-        public static final String QS_LAYOUT = "qs_layout";
-
-        /**
-         * @hide
-         */
-        public static final String QQS_LAYOUT = "qqs_layout";
-
-        /**
          * Whether the phone vibrates on call connect
          * @hide
          */
