@@ -77,7 +77,7 @@ void AnimatorManager::pushStaging() {
         mAnimators.reserve(mAnimators.size() + mNewAnimators.size());
 
         for (const auto& anim : mNewAnimators) {
-            if (anim && anim->target() != &mParent) {
+            if (anim->target() != &mParent) {
                 mAnimators.push_back(anim);
             }
         }
