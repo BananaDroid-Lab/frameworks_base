@@ -90,4 +90,5 @@
     <dimen name="lockscreen_shade_keyguard_transition_distance">@dimen/lockscreen_shade_media_transition_distance</dimen>
 
     <dimen name="oplus_qqs_layout_margin_top">58dp</dimen>
+    <dimen name="qs_header_negative_offsets">-100dp</dimen>
 </resources>

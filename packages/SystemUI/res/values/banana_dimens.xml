@@ -133,4 +133,7 @@
     <dimen name="oplus_qs_media_panel_action_margin_top">16dp</dimen>
     <dimen name="oplus_qs_media_panel_app_icon_margin_top">16dp</dimen>
     <dimen name="oplus_media_icon_size">20dp</dimen>
+    
+    <!-- QS Header -->
+    <dimen name="qs_header_negative_offsets">-50dp</dimen>
 </resources>
