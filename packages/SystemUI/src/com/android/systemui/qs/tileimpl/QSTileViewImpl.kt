@@ -672,10 +672,11 @@ open class QSTileViewImpl @JvmOverloads constructor(
                     getBackgroundColorForState(state.state, state.disabledByPolicy))
             if (allowAnimations) {
             	if (isA11Style) {
-                    shapeAnimator.setFloatValues(
-                        (colorBackgroundDrawable as GradientDrawable).cornerRadius, 
-                        getCornerRadiusForState(state.state)
-                )
+                    if (colorBackgroundDrawable is GradientDrawable) {
+                        val currentCornerRadius = (colorBackgroundDrawable as GradientDrawable).cornerRadius
+                        val targetCornerRadius = getCornerRadiusForState(state.state)
+                        shapeAnimator.setFloatValues(currentCornerRadius, targetCornerRadius)
+                    }
                 }
                 singleAnimator.setValues(
                         colorValuesHolder(
@@ -786,9 +787,13 @@ open class QSTileViewImpl @JvmOverloads constructor(
         }
     }
 
-    private fun setCornerRadius(cornerRadius: Float) {
-        val mBg = ripple.findDrawableByLayerId(R.id.background) as GradientDrawable
-        mBg.cornerRadius = cornerRadius
+    private fun setCornerRadius(cornerRadius: Float?) {
+        if (cornerRadius != null) {
+            val backgroundDrawable = ripple.findDrawableByLayerId(R.id.background)
+            if (backgroundDrawable is GradientDrawable) {
+                backgroundDrawable.cornerRadius = cornerRadius
+            }
+        }
     }
 
     private fun getCornerRadiusForState(state: Int): Float {
