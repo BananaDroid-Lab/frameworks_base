@@ -8354,7 +8354,9 @@ public class WindowManagerService extends IWindowManager.Stub
     }
 
     void unregisterAppFreezeListener(AppFreezeListener listener) {
-        mAppFreezeListeners.remove(listener);
+        synchronized (mGlobalLock) {
+            mAppFreezeListeners.remove(listener);
+        }
     }
 
     /**
