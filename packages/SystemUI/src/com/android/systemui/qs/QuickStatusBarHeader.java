@@ -476,10 +476,6 @@ public class QuickStatusBarHeader extends FrameLayout implements TunerService.Tu
                 endPadding,
                 mClockView.getPaddingBottom()
         );
-
-        MarginLayoutParams lp = (MarginLayoutParams) mClockDateView.getLayoutParams();
-        lp.setMarginStart(endPadding);
-        mClockDateView.setLayoutParams(lp);
     }
 
     private void updateAnimators() {
@@ -521,8 +517,6 @@ public class QuickStatusBarHeader extends FrameLayout implements TunerService.Tu
                         if (!mIsSingleCarrier) {
                             mIconContainer.addIgnoredSlots(mRssiIgnoredSlots);
                         }
-                        // Make it gone so there's enough room for carrier names
-                        mClockDateView.setVisibility(View.GONE);
                     }
 
                     @Override
@@ -535,6 +529,7 @@ public class QuickStatusBarHeader extends FrameLayout implements TunerService.Tu
                         if (!mIsSingleCarrier) {
                             mIconContainer.addIgnoredSlots(mRssiIgnoredSlots);
                         }
+                        mClockDateView.setVisibility(View.GONE);
                     }
 
                     @Override
