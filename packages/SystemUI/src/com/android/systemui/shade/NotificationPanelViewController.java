@@ -4584,7 +4584,7 @@ public final class NotificationPanelViewController implements ShadeSurface, Dump
                                 mResources.getBoolean(com.android.internal.R.bool.
                                 config_dt2sGestureEnabledByDefault));
                     break;
-                default;
+                default:
                     break;
             }
         }
