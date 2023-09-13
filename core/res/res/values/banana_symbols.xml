@@ -67,4 +67,7 @@
     <!-- Transparent color variants -->
     <java-symbol type="color" name="system_accent_transparent_background_light" />
     <java-symbol type="color" name="system_accent_transparent_background_dark" />
+
+    <!-- Cycle through ringer modes -->
+    <java-symbol type="string" name="volume_dialog_ringer_guidance_normal" />
 </resources>
