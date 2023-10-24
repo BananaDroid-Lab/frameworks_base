@@ -185,6 +185,7 @@ public class PropImitationHooks {
         sIsFinsky = packageName.equals(PACKAGE_FINSKY);
 
         if (sIsGms) {
+            setPropValue("TIME", System.currentTimeMillis());
             dlog("Setting Pixel 2 fingerprint for: " + packageName);
             setCertifiedPropsForGms();
         } else if (sIsFinsky) {
