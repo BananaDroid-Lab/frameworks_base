@@ -756,7 +756,7 @@ public class BiometricUnlockController extends KeyguardUpdateMonitorCallback imp
             return;
         }
         boolean FingerprintVib = Settings.System.getIntForUser(mContext.getContentResolver(),
-                Settings.System.FINGERPRINT_SUCCESS_VIB, 1, UserHandle.USER_CURRENT) == 1;
+                Settings.System.FP_SUCCESS_VIBRATE, 1, UserHandle.USER_CURRENT) == 1;
         if (FingerprintVib) {
             mVibratorHelper.vibrateAuthSuccess(
                 getClass().getSimpleName() + ", type =" + type + "device-entry::success");
@@ -773,8 +773,12 @@ public class BiometricUnlockController extends KeyguardUpdateMonitorCallback imp
     }
 
     private void vibrateError(BiometricSourceType type) {
-        mVibratorHelper.vibrateAuthError(
-                getClass().getSimpleName() + ", type =" + type + "device-entry::error");
+        boolean FingerprintVib = Settings.System.getIntForUser(mContext.getContentResolver(),
+                Settings.System.FP_ERROR_VIBRATE, 1, UserHandle.USER_CURRENT) == 1;
+        if (FingerprintVib) {
+            mVibratorHelper.vibrateAuthError(
+                    getClass().getSimpleName() + ", type =" + type + "device-entry::error");
+        }
     }
 
     private void cleanup() {

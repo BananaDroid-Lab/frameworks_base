@@ -224,7 +224,6 @@ public class UdfpsController implements DozeReceiver, Dumpable {
     private boolean mAttemptedToDismissKeyguard;
     private final Set<Callback> mCallbacks = new HashSet<>();
     private final int mUdfpsVendorCode;
-    private final SecureSettings mSecureSettings;
     private boolean mScreenOffFod;
 
     private boolean mDisableSmartPixels;

@@ -717,8 +717,6 @@ public final class NotificationPanelViewController implements ShadeSurface, Dump
 
     private final ActivityStarter mActivityStarter;
 
-    private final TunerService mTunerService;
-
     @Inject
     public NotificationPanelViewController(NotificationPanelView view,
             @Main Handler handler,

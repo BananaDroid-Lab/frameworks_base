@@ -181,7 +181,6 @@ public class PhoneStatusBarPolicy
 
     private boolean mNfcVisible;
     private NfcAdapter mAdapter;
-    private final Context mContext;
 
     private boolean mShowBluetoothBattery;
     private boolean mHideBluetooth;

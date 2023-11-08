@@ -5945,11 +5945,16 @@ public final class Settings {
         public static final String SCREENSHOT_SOUND = "screenshot_sound";
 
         /**
-         * whether to enable or disable vibration on succesful fingerprint auth
-         *
+         * Whether to enable or disable vibration on succesful fingerprint auth
          * @hide
          */
-        public static final String FINGERPRINT_SUCCESS_VIB = "fingerprint_success_vib";
+        public static final String FP_SUCCESS_VIBRATE = "fp_success_vibrate";
+
+        /**
+         * Whether to enable or disable vibration on failed fingerprint auth
+         * @hide
+         */
+        public static final String FP_ERROR_VIBRATE = "fp_error_vibrate";
 
         /**
          * Enable statusbar double tap gesture to put device to sleep
