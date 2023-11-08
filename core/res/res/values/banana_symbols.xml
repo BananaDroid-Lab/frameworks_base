@@ -186,4 +186,8 @@
 
     <!-- Default line spacing multiplier between hours and minutes of the keyguard clock-->
     <java-symbol type="dimen" format="float" name="keyguard_clock_line_spacing_scale" />
+
+    <!-- Status bar DT2S gesture -->
+    <java-symbol type="bool" name="config_dt2sGestureAvailable" />
+    <java-symbol type="bool" name="config_dt2sGestureEnabledByDefault" />
 </resources>
