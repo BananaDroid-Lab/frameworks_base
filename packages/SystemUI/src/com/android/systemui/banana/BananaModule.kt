@@ -30,7 +30,6 @@ import com.android.systemui.qs.tiles.HeadsUpTile
 import com.android.systemui.qs.tiles.LiveDisplayTile
 import com.android.systemui.qs.tiles.PowerShareTile
 import com.android.systemui.qs.tiles.ReadingModeTile
-import com.android.systemui.qs.tiles.RebootTile
 import com.android.systemui.qs.tiles.SmartPixelsTile
 import com.android.systemui.qs.tiles.SoundTile
 import com.android.systemui.qs.tiles.SyncTile
@@ -123,12 +122,6 @@ interface BananaModule {
     @IntoMap
     @StringKey(ReadingModeTile.TILE_SPEC)
     fun bindReadingModeTile(readingModeTile: ReadingModeTile): QSTileImpl<*>
-
-    /** Inject RebootTile into tileMap in QSModule */
-    @Binds
-    @IntoMap
-    @StringKey(RebootTile.TILE_SPEC)
-    fun bindRebootTile(rebootTile: RebootTile): QSTileImpl<*>
 
     /** Inject SmartPixelsTile into tileMap in QSModule */
     @Binds  
