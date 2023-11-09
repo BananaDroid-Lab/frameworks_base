@@ -30,7 +30,7 @@ import android.view.View;
 
 import androidx.annotation.Nullable;
 
-import com.android.internal.custom.hardware.LiveDisplayManager;
+import com.android.internal.lineage.hardware.LiveDisplayManager;
 import com.android.internal.logging.MetricsLogger;
 import com.android.internal.logging.nano.MetricsProto.MetricsEvent;
 import com.android.systemui.R;

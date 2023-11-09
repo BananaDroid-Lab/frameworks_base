@@ -266,7 +266,7 @@ public class RecordingService extends Service implements ScreenMediaRecorderList
                 break;
             case ACTION_DELETE:
                 // Close quick shade
-                sendBroadcast(new Intent(Intent.ACTION_CLOSE_SYSTEM_DIALOGS));
+                closeSystemDialogs();
 
                 ContentResolver resolver = getContentResolver();
                 Uri uri = Uri.parse(intent.getStringExtra(EXTRA_PATH));
@@ -278,7 +278,7 @@ public class RecordingService extends Service implements ScreenMediaRecorderList
                         Toast.LENGTH_LONG).show();
 
                 // Remove notification
-                mNotificationManager.cancelAsUser(null, NOTIFICATION_VIEW_ID, currentUser);
+                mNotificationManager.cancelAsUser(null, mNotificationId, currentUser);
                 Log.d(TAG, "Deleted recording " + uri);
                 break;
             case ACTION_SHOW_DIALOG:
