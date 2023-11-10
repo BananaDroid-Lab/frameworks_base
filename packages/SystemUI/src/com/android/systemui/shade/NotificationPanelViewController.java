@@ -310,8 +310,6 @@ public final class NotificationPanelViewController implements ShadeSurface, Dump
     private static final Rect EMPTY_RECT = new Rect();
     private static final String DOUBLE_TAP_SLEEP_GESTURE =
             "system:" + Settings.System.DOUBLE_TAP_SLEEP_GESTURE;
-    private static final String DOUBLE_TAP_SLEEP_LOCKSCREEN =
-            "system:" + Settings.System.DOUBLE_TAP_SLEEP_LOCKSCREEN;
     /**
      * Whether the Shade should animate to reflect Back gesture progress.
      * To minimize latency at runtime, we cache this, else we'd be reading it every time
@@ -539,8 +537,6 @@ public final class NotificationPanelViewController implements ShadeSurface, Dump
     private final int mDisplayId;
     private boolean mDoubleTapToSleepEnabled;
     private GestureDetector mDoubleTapGesture;
-
-    private boolean mIsLockscreenDoubleTapEnabled;
 
     private final KeyguardIndicationController mKeyguardIndicationController;
     private int mHeadsUpInset;
@@ -4538,7 +4534,6 @@ public final class NotificationPanelViewController implements ShadeSurface, Dump
             mStatusBarStateListener.onStateChanged(mStatusBarStateController.getState());
             mConfigurationController.addCallback(mConfigurationListener);
             mTunerService.addTunable(this, DOUBLE_TAP_SLEEP_GESTURE);
-            mTunerService.addTunable(this, DOUBLE_TAP_SLEEP_LOCKSCREEN);
             mTunerService.addTunable(this, STATUS_BAR_QUICK_QS_PULLDOWN);
             mTunerService.addTunable(this, RETICKER_STATUS);
             mTunerService.addTunable(this, RETICKER_COLORED);
@@ -4568,10 +4563,6 @@ public final class NotificationPanelViewController implements ShadeSurface, Dump
             switch (key) {
                 case DOUBLE_TAP_SLEEP_GESTURE:
                     mDoubleTapToSleepEnabled =
-                            TunerService.parseIntegerSwitch(newValue, true);
-                    break;
-                case DOUBLE_TAP_SLEEP_LOCKSCREEN:
-                    mIsLockscreenDoubleTapEnabled =
                             TunerService.parseIntegerSwitch(newValue, true);
                     break;
                 case STATUS_BAR_QUICK_QS_PULLDOWN:
@@ -4923,10 +4914,7 @@ public final class NotificationPanelViewController implements ShadeSurface, Dump
                 return false;
             }
 
-            if ((mIsLockscreenDoubleTapEnabled && !mPulsing && !mDozing
-                    && mBarState == StatusBarState.KEYGUARD) ||
-                    (!mQsExpanded && mDoubleTapToSleepEnabled
-                    && event.getY() < mStatusBarHeaderHeightKeyguard)) {
+            if (mDoubleTapToSleepEnabled && !mPulsing && !mDozing) {
                 mDoubleTapGesture.onTouchEvent(event);
             }
 

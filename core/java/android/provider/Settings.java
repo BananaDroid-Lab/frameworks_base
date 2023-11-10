@@ -5816,12 +5816,6 @@ public final class Settings {
         public static final String WAKE_WHEN_PLUGGED_OR_UNPLUGGED = "wake_when_plugged_or_unplugged";
 
         /**
-         * Double tap on lockscreen to sleep
-         * @hide
-         */
-        public static final String DOUBLE_TAP_SLEEP_LOCKSCREEN = "double_tap_sleep_lockscreen";
-
-        /**
          * Whether or not to vibrate when a touchscreen gesture is detected
          * @hide
          */
