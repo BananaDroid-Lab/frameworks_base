@@ -175,9 +175,6 @@ import com.android.systemui.plugins.FalsingManager.FalsingTapListener;
 import com.android.systemui.plugins.qs.QS;
 import com.android.systemui.plugins.statusbar.StatusBarStateController;
 import com.android.systemui.plugins.statusbar.StatusBarStateController.StateListener;
-import com.android.systemui.shade.NotificationPanelViewController.OpenCloseListener;
-import com.android.systemui.shade.NotificationPanelViewController.TouchHandler;
-import com.android.systemui.shade.NotificationPanelViewController.TrackingStartedListener;
 import com.android.systemui.shade.transition.ShadeTransitionController;
 import com.android.systemui.shared.system.QuickStepContract;
 import com.android.systemui.statusbar.CommandQueue;
@@ -295,9 +292,6 @@ public final class NotificationPanelViewController implements ShadeSurface, Dump
     private static final String COUNTER_PANEL_OPEN = "panel_open";
     public static final String COUNTER_PANEL_OPEN_QS = "panel_open_qs";
     private static final String COUNTER_PANEL_OPEN_PEEK = "panel_open_peek";
-
-    private static final String STATUS_BAR_QUICK_QS_PULLDOWN =
-            "customsystem:" + Settings.System.STATUS_BAR_QUICK_QS_PULLDOWN;
 
     private static final String RETICKER_STATUS =
             "system:" + Settings.System.RETICKER_STATUS;
@@ -565,8 +559,6 @@ public final class NotificationPanelViewController implements ShadeSurface, Dump
     private float mMinFraction;
 
     private final KeyguardMediaController mKeyguardMediaController;
-
-    private int mOneFingerQuickSettingsIntercept;
 
     private final Optional<KeyguardUnfoldTransition> mKeyguardUnfoldTransition;
     private final Optional<NotificationPanelUnfoldAnimationController>
@@ -4533,7 +4525,6 @@ public final class NotificationPanelViewController implements ShadeSurface, Dump
             mStatusBarStateController.addCallback(mStatusBarStateListener);
             mStatusBarStateListener.onStateChanged(mStatusBarStateController.getState());
             mConfigurationController.addCallback(mConfigurationListener);
-            mTunerService.addTunable(this, STATUS_BAR_QUICK_QS_PULLDOWN);
             mTunerService.addTunable(this, RETICKER_STATUS);
             mTunerService.addTunable(this, RETICKER_COLORED);
             mTunerService.addTunable(this, NOTIFICATION_MATERIAL_DISMISS);
@@ -4561,10 +4552,6 @@ public final class NotificationPanelViewController implements ShadeSurface, Dump
         @Override
         public void onTuningChanged(String key, String newValue) {
             switch (key) {
-                case STATUS_BAR_QUICK_QS_PULLDOWN:
-                    mOneFingerQuickSettingsIntercept =
-                            TunerService.parseIntegerSwitch(newValue, false);
-                    break;
                 case RETICKER_STATUS:
                     mReTickerStatus =
                             TunerService.parseIntegerSwitch(newValue, false);
@@ -5237,10 +5224,6 @@ public final class NotificationPanelViewController implements ShadeSurface, Dump
         void onClosingFinished();
         /** Called when the shade starts opening. */
         void onOpenStarted();
-    }
-
-    protected int getOneFingerQuickSettingsIntercept() {
-        return mOneFingerQuickSettingsIntercept;
     }
 
     /* reTicker */

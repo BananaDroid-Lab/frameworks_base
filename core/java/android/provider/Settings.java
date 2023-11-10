@@ -5851,13 +5851,6 @@ public final class Settings {
                 "lockscreen_scramble_pin_layout";
 
         /**
-         * Whether to allow one finger quick settings expansion on the side of the statusbar.
-         * 0 = 0ff, 1 = right, 2 = left
-         * @hide
-         */
-        public static final String STATUS_BAR_QUICK_QS_PULLDOWN = "qs_quick_pulldown";
-
-        /**
          * boolean value. toggles using arrow key locations on nav bar
          * as left and right dpad keys
          * @hide
