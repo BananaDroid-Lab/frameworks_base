@@ -71,7 +71,7 @@ public class QuickQSPanelController extends QSPanelControllerBase<QuickQSPanel> 
             BrightnessSliderController.Factory brightnessSliderFactory
     ) {
         super(view, qsHost, qsCustomizerController, usingMediaPlayer, mediaHost, metricsLogger,
-                uiEventLogger, qsLogger, dumpManager);
+                uiEventLogger, qsLogger, dumpManager, tunerService);
         mUsingCollapsedLandscapeMediaProvider = usingCollapsedLandscapeMediaProvider;
         mTunerService = tunerService;
 

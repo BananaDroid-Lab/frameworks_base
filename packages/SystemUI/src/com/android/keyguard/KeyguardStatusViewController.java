@@ -287,7 +287,7 @@ public class KeyguardStatusViewController extends ViewController<KeyguardStatusV
         
         @Override
         public void onThemeChanged() {
-            mKeyguardClockSwitchController.onDensityOrFontScaleChanged();
+            mKeyguardClockSwitchController.onConfigChanged();
         }
     };
 

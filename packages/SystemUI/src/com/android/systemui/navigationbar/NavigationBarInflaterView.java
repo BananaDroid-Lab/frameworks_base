@@ -152,7 +152,7 @@ public class NavigationBarInflaterView extends FrameLayout
         mOverviewProxyService = Dependency.get(OverviewProxyService.class);
         mListener = new Listener(this);
         final NavigationModeController controller = Dependency.get(NavigationModeController.class);
-        mNavBarMode = controller.addListener(this);
+        mNavBarMode = controller.addListener(mListener);
         mHomeHandleWidthMode = controller.getNavigationHandleWidthMode();
     }
 
@@ -213,7 +213,6 @@ public class NavigationBarInflaterView extends FrameLayout
         Dependency.get(TunerService.class).addTunable(this, GESTURE_NAVBAR_RADIUS);
     }
 
-    @Override
     public void onNavigationHandleWidthModeChanged(int mode) {
         if (mHomeHandleWidthMode != mode) {
             mHomeHandleWidthMode = mode;
