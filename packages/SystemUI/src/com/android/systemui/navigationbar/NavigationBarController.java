@@ -391,7 +391,7 @@ public class NavigationBarController implements
         });
 
         try {
-            wms.onOverlayChanged();
+            WindowManagerGlobal.getWindowManagerService().onOverlayChanged();
         } catch (RemoteException e) {
             // Do nothing.
         }
@@ -503,7 +503,7 @@ public class NavigationBarController implements
      * @return whether there is a soft nav bar on specific display.
      */
     private boolean hasSoftNavigationBar(Context context, int displayId) {
-        if (displayId == DEFAULT_DISPLAY) {
+        if (displayId == mDisplayTracker.getDefaultDisplayId()) {
             return Settings.System.getIntForUser(context.getContentResolver(),
                             Settings.System.FORCE_SHOW_NAVBAR, BananaUtils.hasNavbarByDefault(context) ? 1 : 0,
                             UserHandle.USER_CURRENT) == 1;
