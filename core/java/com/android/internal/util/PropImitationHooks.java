@@ -190,9 +190,6 @@ public class PropImitationHooks {
         if (sIsGms) {
             dlog("Setting Asus Zenfone 4 fingerprint for: " + packageName);
             setCertifiedPropsForGms();
-        } else if (sIsFinsky) {
-            dlog("Setting certified fingerprint for: " + packageName);
-            setPropValue("FINGERPRINT", sMainFP);
         } else {
             switch (packageName) {
                 case PACKAGE_SUBSCRIPTION_RED:
@@ -358,7 +355,7 @@ public class PropImitationHooks {
 
     private static boolean isCallerSafetyNet() {
         return sIsGms && Arrays.stream(Thread.currentThread().getStackTrace())
-                .anyMatch(elem -> elem.getClassName().toLowerCase().contains("droidguard"));
+                .anyMatch(elem -> elem.getClassName().contains("DroidGuard"));
     }
 
     public static void onEngineGetCertificateChain() {
