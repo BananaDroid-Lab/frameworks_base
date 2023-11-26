@@ -130,4 +130,13 @@
     <string name="turn_on_bluetooth">Use Bluetooth</string>
     <string name="bluetooth_is_off">Bluetooth is off</string>
     <string name="tap_a_device_to_connect">Tap to connect or disconnect a device</string>
+
+    <!-- Weather -->
+    <string name="weather_condition_clouds">Cloudy</string>
+    <string name="weather_condition_rain">Rainy</string>
+    <string name="weather_condition_clear">Sunny</string>
+    <string name="weather_condition_storm">Stormy</string>
+    <string name="weather_condition_snow">Snowy</string>
+    <string name="weather_condition_wind">Windy</string>
+    <string name="weather_condition_mist">Misty</string>
 </resources>
