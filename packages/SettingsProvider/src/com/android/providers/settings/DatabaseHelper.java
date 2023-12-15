@@ -2260,7 +2260,7 @@ class DatabaseHelper extends SQLiteOpenHelper {
             loadIntegerSetting(stmt, Settings.System.POINTER_SPEED,
                     R.integer.def_pointer_speed);
 
-            loadIntegerSetting(stmt, Settings.System.FORCE_SHOW_NAVBAR,
+            loadIntegerSetting(stmt, Settings.System.NAVIGATION_BAR_SHOW,
                     R.integer.def_force_show_navbar);
 
             /*
