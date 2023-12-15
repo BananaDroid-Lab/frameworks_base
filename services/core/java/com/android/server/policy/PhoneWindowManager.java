@@ -260,6 +260,7 @@ import java.util.List;
 import java.util.Set;
 import java.util.function.Supplier;
 
+import com.android.internal.lineage.hardware.LineageHardwareManager;
 import com.android.internal.util.custom.NavbarUtils;
 
 /**
@@ -769,6 +770,7 @@ public class PhoneWindowManager implements WindowManagerPolicy {
     private PendingIntent mTorchOffPendingIntent;
 
     private boolean mLongSwipeDown;
+    private LineageHardwareManager mLineageHardware;
 
     private class PolicyHandler extends Handler {
         @Override
