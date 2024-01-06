@@ -1395,12 +1395,11 @@ public final class CachedAppOptimizer {
             synchronized (mProcLock) {
                 // Move the earliest freezable time further, if necessary
                 final long delay = updateEarliestFreezableTime(app, delayMillis);
-                if (mFreezerProcessPolicies.isProcessInteractive(app) || app.mOptRecord.isFrozen() || app.mOptRecord.isPendingFreeze()) {
+                if (!mFreezerProcessPolicies.isProcessInteractive(app)) {
+                    return;
+                }
+                if (app.mOptRecord.isFrozen() || app.mOptRecord.isPendingFreeze()) {
                     unfreezeAppLSP(app, reason);
-                    // only freeze processes that are not interactive
-                    if (!mFreezerProcessPolicies.isProcessInteractive(app)) {
-                        freezeAppAsyncLSP(app, delay);
-                    }
                 }
             }
         }
@@ -1483,7 +1482,7 @@ public final class CachedAppOptimizer {
             }
             return;
         }
-        if (opt.isPendingFreeze()) {
+        if (opt.isPendingFreeze() && mFreezerProcessPolicies.isProcessInteractive(app)) {
             // Remove pending DO_FREEZE message
             mFreezeHandler.removeMessages(SET_FROZEN_PROCESS_MSG, app);
             opt.setPendingFreeze(false);
@@ -1628,7 +1627,7 @@ public final class CachedAppOptimizer {
     void onCleanupApplicationRecordLocked(ProcessRecord app) {
         if (mUseFreezer) {
             final ProcessCachedOptimizerRecord opt = app.mOptRecord;
-            if (opt.isPendingFreeze()) {
+            if (opt.isPendingFreeze() && mFreezerProcessPolicies.isProcessInteractive(app)) {
                 // Remove pending DO_FREEZE message
                 mFreezeHandler.removeMessages(SET_FROZEN_PROCESS_MSG, app);
                 opt.setPendingFreeze(false);
@@ -2493,15 +2492,12 @@ public final class CachedAppOptimizer {
         public boolean isProcessInteractive(ProcessRecord app) {
             if (app == null) return false;
             final ProcessStateRecord state = app.mState;
-            final boolean isUserProcess = state.getCurAdj() < state.getSetAdj() && (state.getCurAdj() < ProcessList.CACHED_APP_MIN_ADJ || state.getCurAdj() > ProcessList.CACHED_APP_MAX_ADJ);
+            final boolean isUserProcess = state.getCurAdj() < state.getSetAdj() 
+                && (state.getCurAdj() < ProcessList.CACHED_APP_MIN_ADJ 
+                    || state.getCurAdj() > ProcessList.CACHED_APP_MAX_ADJ);
             if (state.hasForegroundActivities() 
                    || isUserProcess
-                   || state.hasRepForegroundActivities()
-                   || state.hasShownUi()
-                   || state.hasTopUi()
-                   || state.hasOverlayUi()
-                   || state.getCurAdj() < ProcessList.CACHED_APP_MIN_ADJ 
-                   || state.getCurAdj() > ProcessList.CACHED_APP_MAX_ADJ) {
+                   || state.hasOverlayUi()) {
                 interactiveProcessRecords.computeIfAbsent(app.info.packageName, k -> new ArraySet<>()).add(app);
                 return true;
             } else {
@@ -2528,6 +2524,17 @@ public final class CachedAppOptimizer {
                 }
             }
             return false;
+        }
+        
+        public void addPkgToFreezeList(String packageName) {
+            ArraySet<ProcessRecord> interactiveProcesses = interactiveProcessRecords.get(packageName);
+            if (interactiveProcesses != null && !interactiveProcesses.isEmpty()) {
+                ProcessRecord appRecord = interactiveProcesses.valueAt(0);
+                interactiveProcesses.remove(appRecord);
+                if (interactiveProcesses.isEmpty()) {
+                    interactiveProcessRecords.remove(packageName);
+                }
+            }
         }
 
     }
