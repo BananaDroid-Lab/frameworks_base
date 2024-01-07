@@ -157,7 +157,7 @@ public class QSPanel extends LinearLayout implements Tunable {
         mMediaTotalBottomMargin = getResources().getDimensionPixelSize(
                 R.dimen.quick_settings_bottom_margin_media);
         mMediaTopMargin = getResources().getDimensionPixelSize(
-                R.dimen.qs_tile_margin_vertical);
+                R.dimen.quick_settings_top_margin_media);
         mContext = context;
 
         setOrientation(VERTICAL);
@@ -287,7 +287,7 @@ public class QSPanel extends LinearLayout implements Tunable {
             // Since PageIndicator gets measured before PagedTileLayout, we preemptively set the
             // # of pages before the measurement pass so PageIndicator is measured appropriately
             if (mFooterPageIndicator != null) {
-                mFooterPageIndicator.setNumPages(((PagedTileLayout) mTileLayout).getNumPages());
+                mFooterPageIndicator.setNumPages(0);
             }
 
             // In landscape, mTileLayout's parent is not the panel but a view that contains the
@@ -535,18 +535,18 @@ public class QSPanel extends LinearLayout implements Tunable {
             index++;
         }
 
+        if (mFooter != null) {
+            // Then the footer with the settings
+            switchToParent(mFooter, parent, index);
+            index++;
+        }
+
         // Let's first move the tileLayout to the new parent, since that should come first.
         switchToParent((View) newLayout, parent, index);
         index++;
 
         if (mBrightnessView != null && !mTop) {
             switchToParent(mBrightnessView, parent, index);
-            index++;
-        }
-
-        if (mFooter != null) {
-            // Then the footer with the settings
-            switchToParent(mFooter, parent, index);
             index++;
         }
     }
@@ -579,7 +579,7 @@ public class QSPanel extends LinearLayout implements Tunable {
             // carried in the parent of this view (to ensure correct vertical alignment)
             layoutParams.bottomMargin = !horizontal || displayMediaMarginsOnMedia()
                     ? Math.max(mMediaTotalBottomMargin - getPaddingBottom(), 0) : 0;
-            layoutParams.topMargin = mediaNeedsTopMargin() && !horizontal
+            layoutParams.topMargin = !horizontal
                     ? mMediaTopMargin : 0;
             // Call setLayoutParams explicitly to ensure that requestLayout happens
             hostView.setLayoutParams(layoutParams);
