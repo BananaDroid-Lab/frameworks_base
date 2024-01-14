@@ -7277,6 +7277,12 @@ public final class Settings {
           */
         public static final String CUSTOM_UI_TOGGLE = "custom_ui_toggle";
 
+	/**
+          * About phone header style on Settings
+          * @hide
+          */
+        public static final String ABOUT_PHONE_HEADER = "about_phone_header";
+
         /**
          * Keys we no longer back up under the current schema, but want to continue to
          * process when restoring historical backup datasets.
@@ -7441,6 +7447,7 @@ public final class Settings {
             PRIVATE_SETTINGS.add(KEY_EDGE_LONG_SWIPE_ACTION);
             PRIVATE_SETTINGS.add(BACK_GESTURE_HAPTIC);
             PRIVATE_SETTINGS.add(CUSTOM_UI_TOGGLE);
+            PRIVATE_SETTINGS.add(ABOUT_PHONE_HEADER);
         }
 
         /**
