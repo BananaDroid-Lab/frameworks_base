@@ -3049,66 +3049,38 @@ public class OomAdjuster {
                 mProcessGroupHandler.sendMessage(mProcessGroupHandler.obtainMessage(
                         0 /* unused */, app.getPid(), processGroup, app.processName));
                 try {
+                    if (oldSchedGroup != curSchedGroup) {
+                        int decremented = --uidRec.numSchedGroup[oldSchedGroup];
+                        int incremented = ++uidRec.numSchedGroup[curSchedGroup];
+                        if (decremented == 0 || incremented == 1) {
+                            mService.updateCgroupPrioLocked(uidRec);
+                        }
+                    }
                     final int renderThreadTid = app.getRenderThreadTid();
                     if (curSchedGroup == SCHED_GROUP_TOP_APP) {
                         // do nothing if we already switched to RT
                         if (oldSchedGroup != SCHED_GROUP_TOP_APP) {
                             app.getWindowProcessController().onTopProcChanged();
-                            if (mService.mUseFifoUiScheduling) {
-                                // Switch UI pipeline for app to SCHED_FIFO
-                                state.setSavedPriority(Process.getThreadPriority(app.getPid()));
-                                mService.scheduleAsFifoPriority(app.getPid(), true);
-                                if (renderThreadTid != 0) {
-                                    mService.scheduleAsFifoPriority(renderThreadTid,
-                                            /* suppressLogs */true);
-                                    if (DEBUG_OOM_ADJ) {
-                                        Slog.d("UI_FIFO", "Set RenderThread (TID " +
-                                                renderThreadTid + ") to FIFO");
-                                    }
-                                } else {
-                                    if (DEBUG_OOM_ADJ) {
-                                        Slog.d("UI_FIFO", "Not setting RenderThread TID");
-                                    }
-                                }
-                            } else {
-                                // Boost priority for top app UI and render threads
-                                setThreadPriority(app.getPid(), THREAD_PRIORITY_TOP_APP_BOOST);
-                                if (renderThreadTid != 0) {
-                                    try {
-                                        setThreadPriority(renderThreadTid,
-                                                THREAD_PRIORITY_TOP_APP_BOOST);
-                                    } catch (IllegalArgumentException e) {
-                                        // thread died, ignore
-                                    }
-                                }
+                            // Switch UI pipeline for app to SCHED_FIFO
+                            state.setSavedPriority(Process.getThreadPriority(app.getPid()));
+                            mService.scheduleAsFifoPriority(app.getPid(), 1, true);
+                            if (renderThreadTid != 0) {
+                                mService.scheduleAsFifoPriority(renderThreadTid, 1, /* suppressLogs */true);
                             }
                         }
                     } else if (oldSchedGroup == SCHED_GROUP_TOP_APP
                             && curSchedGroup != SCHED_GROUP_TOP_APP) {
                         app.getWindowProcessController().onTopProcChanged();
-                        if (mService.mUseFifoUiScheduling) {
-                            try {
-                                // Reset UI pipeline to SCHED_OTHER
-                                setThreadScheduler(app.getPid(), SCHED_OTHER, 0);
-                                setThreadPriority(app.getPid(), state.getSavedPriority());
-                                if (renderThreadTid != 0) {
-                                    setThreadScheduler(renderThreadTid,
-                                            SCHED_OTHER, 0);
-                                }
-                            } catch (IllegalArgumentException e) {
-                                Slog.w(TAG,
-                                        "Failed to set scheduling policy, thread does not exist:\n"
-                                                + e);
-                            } catch (SecurityException e) {
-                                Slog.w(TAG, "Failed to set scheduling policy, not allowed:\n" + e);
+                        try {
+                            // Reset UI pipeline to SCHED_OTHER 
+                            mService.scheduleAsRegularPriority(app.getPid(),
+                                    state.getSavedPriority(), /* suppressLogs */ true);
+                            if (renderThreadTid != 0) {
+                                mService.scheduleAsRegularPriority(renderThreadTid, 0, true);
                             }
-                        } else {
-                            // Reset priority for top app UI and render threads
-                            setThreadPriority(app.getPid(), 0);
-                        }
-
-                        if (renderThreadTid != 0) {
-                            setThreadPriority(renderThreadTid, THREAD_PRIORITY_DISPLAY);
+                        } catch (Exception e) {
+                            Slog.w(TAG,
+                                    "Failed to set scheduling policy of " + app.getPid(), e);
                         }
                     }
                 } catch (Exception e) {
@@ -3281,11 +3253,7 @@ public class OomAdjuster {
                 // {@link SCHED_GROUP_TOP_APP}. We don't check render thread because it
                 // is not ready when attaching.
                 app.getWindowProcessController().onTopProcChanged();
-                if (mService.mUseFifoUiScheduling) {
-                    mService.scheduleAsFifoPriority(app.getPid(), true);
-                } else {
-                    setThreadPriority(app.getPid(), THREAD_PRIORITY_TOP_APP_BOOST);
-                }
+                mService.scheduleAsFifoPriority(app.getPid(), 1, true);
                 if (isScreenOnOrAnimatingLocked(state)) {
                     initialSchedGroup = SCHED_GROUP_TOP_APP;
                     initialProcState = PROCESS_STATE_TOP;

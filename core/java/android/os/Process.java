@@ -1107,6 +1107,24 @@ public class Process {
             throws IllegalArgumentException, SecurityException;
 
     /**
+    * @hide
+    */
+    public static final native void setUidPrio(int uid, int group)
+            throws IllegalArgumentException, SecurityException;
+
+    /**
+    * @hide
+    */
+    public static final native void putThreadInRoot(int tid)
+            throws IllegalArgumentException, SecurityException;
+
+    /**
+    * @hide
+    */
+    public static final native void putProc(int uid, int pid)
+            throws IllegalArgumentException, SecurityException;
+
+    /**
      * Freeze or unfreeze the specified process.
      *
      * @param pid Identifier of the process to freeze or unfreeze.

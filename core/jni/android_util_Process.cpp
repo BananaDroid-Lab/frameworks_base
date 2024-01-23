@@ -28,6 +28,7 @@
 #include <meminfo/sysmeminfo.h>
 #include <processgroup/processgroup.h>
 #include <processgroup/sched_policy.h>
+#include <android-base/file.h>
 #include <android-base/logging.h>
 #include <android-base/unique_fd.h>
 
@@ -584,6 +585,84 @@ jint android_os_Process_getThreadPriority(JNIEnv* env, jobject clazz,
     }
     //ALOGI("Returning priority of %" PRId32 ": %" PRId32 "\n", pid, pri);
     return pri;
+}
+
+void android_os_Process_putThreadInRoot(JNIEnv* jni, jclass clazz, jint tid) {
+    const char* path = "/dev/cpuctl/tasks";
+    int fd = open(path, O_WRONLY | O_CLOEXEC);
+    if (fd != -1) {
+        android::base::WriteStringToFd(std::to_string(tid), fd);
+        close(fd);
+        //ALOGI("Successfully wrote %d to %s", tid, path);
+    }
+}
+
+void android_os_Process_putProc(JNIEnv* jni, jclass clazz, jint uid, jint pid) {
+    const char* baseDirV1 = "/dev/cpuctl/";
+    const char* baseDirV2 = "/sys/fs/cgroup/";
+    const char* filename = "cgroup.procs";
+
+    char pathV1[PATH_MAX];
+    char pathV2[PATH_MAX];
+    static bool isCgroupV2 = false;
+
+    if (!isCgroupV2) {
+        snprintf(pathV2, sizeof(pathV2), "%suid_%d/pid_%d/%s", baseDirV2, uid, pid, filename);
+        int v2Check = access(pathV2, F_OK);
+        if (v2Check == 0) {
+            isCgroupV2 = true;
+        }
+    }
+
+    snprintf(pathV1, sizeof(pathV1), "%sapp_uid_%d/", baseDirV1, uid);
+
+    if (isCgroupV2) {
+        snprintf(pathV2, sizeof(pathV2), "%suid_%d/pid_%d/", baseDirV2, uid, pid);
+    }
+
+    if (isCgroupV2) {
+        int ret2 = mkdir(pathV2, 0755);
+        if (ret2 == 0 || errno == EEXIST) {
+            snprintf(pathV2, sizeof(pathV2), "%suid_%d/pid_%d/%s", baseDirV2, uid, pid, filename);
+            int fd = open(pathV2, O_WRONLY | O_CLOEXEC);
+            if (fd != -1) {
+                android::base::WriteStringToFd(std::to_string(pid), fd);
+                close(fd);
+                //ALOGI("PutProc successfully wrote %d to %s", pid, pathV2);
+            }
+        }
+    }
+
+    int ret = mkdir(pathV1, 0755);
+    if (ret == 0 || errno == EEXIST) {
+        snprintf(pathV1, sizeof(pathV1), "%sapp_uid_%d/%s", baseDirV1, uid, filename);
+        int fd = open(pathV1, O_WRONLY | O_CLOEXEC);
+        if (fd != -1) {
+            android::base::WriteStringToFd(std::to_string(pid), fd);
+            close(fd);
+            //ALOGI("PutProc successfully wrote %d to %s", pid, pathV1);
+        }
+    }
+}
+
+void android_os_Process_setUidPrio(JNIEnv* env, jobject clazz, jint uid, jint shares) {
+    const char* baseDir = "/dev/cpuctl/";
+    const char* filename = "cpu.shares";
+
+    char buf[PATH_MAX];
+    snprintf(buf, sizeof(buf), "%sapp_uid_%d/", baseDir, uid);
+
+    int ret = mkdir(buf, 0755);
+    if (ret == 0 || errno == EEXIST) {
+        snprintf(buf, sizeof(buf), "%sapp_uid_%d/%s", baseDir, uid, filename);
+
+        int fd = open(buf, O_WRONLY | O_CLOEXEC);
+        if (fd != -1) {
+            android::base::WriteStringToFd(std::to_string(shares), fd);
+            close(fd);
+            //ALOGI("Successfully wrote %d to %s", shares, buf);
+        }
+    }
 }
 
 jboolean android_os_Process_setSwappiness(JNIEnv *env, jobject clazz,
@@ -1326,6 +1405,9 @@ static const JNINativeMethod methods[] = {
         {"getThreadScheduler", "(I)I", (void*)android_os_Process_getThreadScheduler},
         {"setThreadGroup", "(II)V", (void*)android_os_Process_setThreadGroup},
         {"setThreadGroupAndCpuset", "(II)V", (void*)android_os_Process_setThreadGroupAndCpuset},
+        {"putThreadInRoot", "(I)V", (void*)android_os_Process_putThreadInRoot},
+        {"putProc", "(II)V", (void*)android_os_Process_putProc},
+        {"setUidPrio", "(II)V", (void*)android_os_Process_setUidPrio},
         {"setProcessGroup", "(II)V", (void*)android_os_Process_setProcessGroup},
         {"getProcessGroup", "(I)I", (void*)android_os_Process_getProcessGroup},
         {"createProcessGroup", "(II)I", (void*)android_os_Process_createProcessGroup},

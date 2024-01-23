@@ -122,8 +122,10 @@ import static android.os.Process.myPid;
 import static android.os.Process.myUid;
 import static android.os.Process.readProcFile;
 import static android.os.Process.sendSignal;
+import static android.os.Process.putProc;
 import static android.os.Process.setThreadPriority;
 import static android.os.Process.setThreadScheduler;
+import static android.os.Process.setUidPrio;
 import static android.provider.Settings.Global.ALWAYS_FINISH_ACTIVITIES;
 import static android.provider.Settings.Global.DEBUG_APP;
 import static android.provider.Settings.Global.WAIT_FOR_DEBUGGER;
@@ -524,6 +526,9 @@ public class ActivityManagerService extends IActivityManager.Stub
     private static final String SYSTEM_PROPERTY_DEVICE_PROVISIONED =
             "persist.sys.device_provisioned";
 
+    // indexed by SCHED_GROUP_* values
+    static final int[] CGROUP_CPU_SHARES = new int[] {1024, 1024, 1024, 20480, 10240};
+
     static final String TAG = TAG_WITH_CLASS_NAME ? "ActivityManagerService" : TAG_AM;
     static final String TAG_BACKUP = TAG + POSTFIX_BACKUP;
     private static final String TAG_BROADCAST = TAG + POSTFIX_BROADCAST;
@@ -717,9 +722,6 @@ public class ActivityManagerService extends IActivityManager.Stub
      */
     final ActivityManagerGlobalLock mProcLock = ENABLE_PROC_LOCK
             ? new ActivityManagerProcLock() : mGlobalLock;
-
-    // Whether we should use SCHED_FIFO for UI and RenderThreads.
-    final boolean mUseFifoUiScheduling;
 
     // Use an offload queue for long broadcasts, e.g. BOOT_COMPLETED.
     // For simplicity, since we statically declare the size of the array of BroadcastQueues,
@@ -2487,7 +2489,6 @@ public class ActivityManagerService extends IActivityManager.Stub
         mUgmInternal = LocalServices.getService(UriGrantsManagerInternal.class);
         mInternal = new LocalService();
         mPendingStartActivityUids = new PendingStartActivityUids();
-        mUseFifoUiScheduling = false;
         mEnableOffloadQueue = false;
         mEnableModernQueue = false;
         mBroadcastQueues = new BroadcastQueue[0];
@@ -2594,8 +2595,6 @@ public class ActivityManagerService extends IActivityManager.Stub
                 mHandlerThread.getLooper(), mUserController, mConstants);
 
         mAppRestrictionController = new AppRestrictionController(mContext, this);
-
-        mUseFifoUiScheduling = SystemProperties.getInt("sys.use_fifo_ui", 0) != 0;
 
         mTrackingAssociations = "1".equals(SystemProperties.get("debug.track-associations"));
         mIntentFirewall = new IntentFirewall(new IntentFirewallInterface(), mHandler);
@@ -4484,6 +4483,38 @@ public class ActivityManagerService extends IActivityManager.Stub
         return didSomething;
     }
 
+	final void updateCgroupPrioLocked(final UidRecord uidRec) {
+		int sg = ProcessList.SCHED_GROUP_DEFAULT;
+		if (uidRec.numSchedGroup[ProcessList.SCHED_GROUP_TOP_APP] > 0) {
+		    sg = ProcessList.SCHED_GROUP_TOP_APP;
+		} else if (uidRec.numSchedGroup[ProcessList.SCHED_GROUP_TOP_APP_BOUND] > 0) {
+		    sg = ProcessList.SCHED_GROUP_TOP_APP_BOUND;
+		} else if (uidRec.numSchedGroup[ProcessList.SCHED_GROUP_BACKGROUND] == uidRec.getNumOfProcs()) {
+		    sg = ProcessList.SCHED_GROUP_BACKGROUND;
+		} else if (uidRec.numSchedGroup[ProcessList.SCHED_GROUP_RESTRICTED] == uidRec.getNumOfProcs()) {
+		    sg = ProcessList.SCHED_GROUP_RESTRICTED;
+		}
+		if (sg != uidRec.setSchedGroup) {
+		    if (UserHandle.isApp(uidRec.mUid) || UserHandle.isIsolated(uidRec.mUid)) {
+		        final int callingUid = Binder.getCallingUid();
+		        final String packageName;
+		        final long token = Binder.clearCallingIdentity();
+		        final String[] uiCriticalPackages = { "com.android.systemui", "com.android.launcher3", "com.nothing.launcher", "com.google.android.apps.nexuslauncher" };
+		        try {
+		            packageName = AppGlobals.getPackageManager().getNameForUid(callingUid);
+		            if (packageName != null && Arrays.asList(uiCriticalPackages).contains(packageName.toLowerCase())) {
+		                sg = ProcessList.SCHED_GROUP_TOP_APP;
+		            }
+		        } catch (RemoteException e) {
+		        } finally {
+		            Binder.restoreCallingIdentity(token);
+		        }
+		        uidRec.setSchedGroup = sg;
+		        Process.setUidPrio(uidRec.mUid, CGROUP_CPU_SHARES[sg]);
+		    }
+		}
+	}
+
     @GuardedBy("this")
     void handleProcessStartOrKillTimeoutLocked(ProcessRecord app, boolean isKillTimeout) {
         final int pid = app.getPid();
@@ -4640,6 +4671,10 @@ public class ActivityManagerService extends IActivityManager.Stub
         // process, clean it up now.
         if (app.getThread() != null) {
             handleAppDiedLocked(app, pid, true, true, false /* fromBinderDied */);
+        }
+
+        if (UserHandle.isApp(app.uid) || UserHandle.isIsolated(app.uid)) {
+            Process.putProc(app.uid, app.getPid());
         }
 
         // Tell the process all about itself.
@@ -7836,9 +7871,13 @@ public class ActivityManagerService extends IActivityManager.Stub
      *
      * @return {@code true} if this succeeded.
      */
-    public static boolean scheduleAsRegularPriority(int tid, boolean suppressLogs) {
+    public static boolean scheduleAsRegularPriority(int tid, int prio, boolean suppressLogs) {
         try {
-            Process.setThreadScheduler(tid, Process.SCHED_OTHER, 0);
+            int uid = Process.getUidForPid(tid);
+            if (UserHandle.isApp(uid) || UserHandle.isIsolated(uid)) {
+                Process.putProc(uid, tid);
+            }
+            Process.setThreadScheduler(tid, Process.SCHED_OTHER, prio);
             return true;
         } catch (IllegalArgumentException e) {
             if (!suppressLogs) {
@@ -7860,9 +7899,13 @@ public class ActivityManagerService extends IActivityManager.Stub
      *
      * @return {@code true} if this succeeded.
      */
-    public static boolean scheduleAsFifoPriority(int tid, boolean suppressLogs) {
+    public static boolean scheduleAsFifoPriority(int tid, int prio, boolean suppressLogs) {
         try {
-            Process.setThreadScheduler(tid, Process.SCHED_FIFO | Process.SCHED_RESET_ON_FORK, 1);
+            int uid = Process.getUidForPid(tid);
+            if (UserHandle.isApp(uid) || UserHandle.isIsolated(uid)) {
+                Process.putThreadInRoot(tid);
+            }
+            Process.setThreadScheduler(tid, Process.SCHED_FIFO | Process.SCHED_RESET_ON_FORK, prio);
             return true;
         } catch (IllegalArgumentException e) {
             if (!suppressLogs) {
@@ -7901,17 +7944,7 @@ public class ActivityManagerService extends IActivityManager.Stub
                 // promote to FIFO now
                 if (proc.mState.getCurrentSchedulingGroup() == ProcessList.SCHED_GROUP_TOP_APP) {
                     if (DEBUG_OOM_ADJ) Slog.d("UI_FIFO", "Promoting " + tid + "out of band");
-                    if (mUseFifoUiScheduling) {
-                        setThreadScheduler(proc.getRenderThreadTid(),
-                                SCHED_FIFO | SCHED_RESET_ON_FORK, 1);
-                    } else {
-                        setThreadPriority(proc.getRenderThreadTid(), THREAD_PRIORITY_TOP_APP_BOOST);
-                    }
-                }
-            } else {
-                if (DEBUG_OOM_ADJ) {
-                    Slog.d("UI_FIFO", "Didn't set thread from setRenderThread? "
-                            + "PID: " + pid + ", TID: " + tid + " FIFO: " + mUseFifoUiScheduling);
+                    scheduleAsFifoPriority(proc.getRenderThreadTid(), 1, /*noLogs*/true);
                 }
             }
         }
@@ -20330,7 +20363,7 @@ public class ActivityManagerService extends IActivityManager.Stub
     public boolean shouldSkipBootCompletedBroadcastForPackage(ApplicationInfo info) {
         return getAppOpsManager().checkOpNoThrow(
                 AppOpsManager.OP_RUN_ANY_IN_BACKGROUND,
-                info.uid, info.packageName) != AppOpsManager.MODE_ALLOWED 
+                info.uid, info.packageName) != AppOpsManager.MODE_ALLOWED
                 && !mOomAdjuster.mCachedAppOptimizer.mFreezerProcessPolicies.isPkgInteractive(info.packageName);
     }
 }
