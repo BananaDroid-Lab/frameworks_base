@@ -375,7 +375,8 @@ public class OomAdjuster {
     private final ProcessList mProcessList;
     private final ActivityManagerGlobalLock mProcLock;
     // Threshold for B-services when in memory pressure
-    int mBServiceAppThreshold = 16;
+    int mBServiceAppThreshold = 5;
+    int LEGACY_CUR_MAX_CACHED_PROCESSES = 32;
 
     private final int mNumSlots;
     private final ArrayList<ProcessRecord> mTmpProcessList = new ArrayList<ProcessRecord>();
@@ -461,7 +462,7 @@ public class OomAdjuster {
         mTmpQueue = new ArrayDeque<ProcessRecord>(mConstants.CUR_MAX_CACHED_PROCESSES << 1);
         mNumSlots = ((CACHED_APP_MAX_ADJ - CACHED_APP_MIN_ADJ + 1) >> 1)
                 / CACHED_APP_IMPORTANCE_LEVELS;
-        mBServiceAppThreshold = (mConstants.CUR_MAX_CACHED_PROCESSES);
+        mBServiceAppThreshold = (mBServiceAppThreshold / LEGACY_CUR_MAX_CACHED_PROCESSES) * (mConstants.CUR_MAX_CACHED_PROCESSES);
     }
 
     void initSettings() {
@@ -1296,7 +1297,7 @@ public class OomAdjuster {
                 for (int s = app.mServices.numberOfRunningServices() - 1; s >= 0; s--) {
                     ServiceRecord sr = app.mServices.getRunningServiceAt(s);
 
-                    if (SystemClock.uptimeMillis() - sr.lastActivity < (mBServiceAppThreshold * 80)) {
+                    if (SystemClock.uptimeMillis() - sr.lastActivity < (mBServiceAppThreshold * 1000)) {
                         continue;
                     }
                     if (sr.lastActivity < minServiceLastActivity) {
