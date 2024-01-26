@@ -250,16 +250,16 @@ public final class CachedAppOptimizer {
     private static final String ATRACE_FREEZER_TRACK = "Freezer";
 
     private static final int FREEZE_BINDER_TIMEOUT_MS = 0;
-    private static final int FREEZE_DEADLOCK_TIMEOUT_MS = 100;
+    private static final int FREEZE_DEADLOCK_TIMEOUT_MS = 1000;
 
-    @VisibleForTesting static final boolean ENABLE_FILE_COMPACT = true;
+    @VisibleForTesting static final boolean ENABLE_FILE_COMPACT = false;
 
     // Defaults for phenotype flags.
     @VisibleForTesting static final boolean DEFAULT_USE_COMPACTION = true;
     @VisibleForTesting static final boolean DEFAULT_USE_FREEZER = true;
     @VisibleForTesting static final long DEFAULT_COMPACT_THROTTLE_1 = 5_000;
     @VisibleForTesting static final long DEFAULT_COMPACT_THROTTLE_2 = 10_000;
-    @VisibleForTesting static final long DEFAULT_COMPACT_THROTTLE_3 = 50;
+    @VisibleForTesting static final long DEFAULT_COMPACT_THROTTLE_3 = 500;
     @VisibleForTesting static final long DEFAULT_COMPACT_THROTTLE_4 = 10_000;
     @VisibleForTesting static final long DEFAULT_COMPACT_THROTTLE_5 = 10 * 60 * 1000;
     @VisibleForTesting static final long DEFAULT_COMPACT_THROTTLE_6 = 10 * 60 * 1000;
@@ -274,12 +274,12 @@ public final class CachedAppOptimizer {
     // Format of this string should be a comma separated list of integers.
     @VisibleForTesting static final String DEFAULT_COMPACT_PROC_STATE_THROTTLE =
             String.valueOf(ActivityManager.PROCESS_STATE_RECEIVER);
-    @VisibleForTesting static final long DEFAULT_FREEZER_DEBOUNCE_TIMEOUT = 0;
+    @VisibleForTesting static final long DEFAULT_FREEZER_DEBOUNCE_TIMEOUT = 10_000L;
     @VisibleForTesting static final boolean DEFAULT_FREEZER_EXEMPT_INST_PKG = false;
     @VisibleForTesting static final boolean DEFAULT_FREEZER_BINDER_ENABLED = true;
     @VisibleForTesting static final long DEFAULT_FREEZER_BINDER_DIVISOR = 4;
-    @VisibleForTesting static final int DEFAULT_FREEZER_BINDER_OFFSET = 50;
-    @VisibleForTesting static final long DEFAULT_FREEZER_BINDER_THRESHOLD = 100;
+    @VisibleForTesting static final int DEFAULT_FREEZER_BINDER_OFFSET = 500;
+    @VisibleForTesting static final long DEFAULT_FREEZER_BINDER_THRESHOLD = 1_000;
     @VisibleForTesting static final boolean DEFAULT_FREEZER_BINDER_CALLBACK_ENABLED = true;
     @VisibleForTesting static final long DEFAULT_FREEZER_BINDER_CALLBACK_THROTTLE = 10_000L;
     @VisibleForTesting static final int DEFAULT_FREEZER_BINDER_ASYNC_THRESHOLD = 1_024;
@@ -1395,11 +1395,11 @@ public final class CachedAppOptimizer {
             synchronized (mProcLock) {
                 // Move the earliest freezable time further, if necessary
                 final long delay = updateEarliestFreezableTime(app, delayMillis);
-                if (!mFreezerProcessPolicies.isProcessInteractive(app)) {
-                    return;
-                }
-                if (app.mOptRecord.isFrozen() || app.mOptRecord.isPendingFreeze()) {
+                if (mFreezerProcessPolicies.isProcessInteractive(app) || app.mOptRecord.isFrozen() || app.mOptRecord.isPendingFreeze()) {
                     unfreezeAppLSP(app, reason);
+                    if (!mFreezerProcessPolicies.isProcessInteractive(app)) {
+                        freezeAppAsyncLSP(app, delay);
+                    }
                 }
             }
         }
@@ -2497,7 +2497,12 @@ public final class CachedAppOptimizer {
                     || state.getCurAdj() > ProcessList.CACHED_APP_MAX_ADJ);
             if (state.hasForegroundActivities() 
                    || isUserProcess
-                   || state.hasOverlayUi()) {
+                   || state.hasRepForegroundActivities()
+                   || state.hasShownUi()
+                   || state.hasTopUi()
+                   || state.hasOverlayUi()
+                   || state.getCurAdj() < ProcessList.CACHED_APP_MIN_ADJ 
+                   || state.getCurAdj() > ProcessList.CACHED_APP_MAX_ADJ) {
                 interactiveProcessRecords.computeIfAbsent(app.info.packageName, k -> new ArraySet<>()).add(app);
                 return true;
             } else {
@@ -2524,17 +2529,6 @@ public final class CachedAppOptimizer {
                 }
             }
             return false;
-        }
-        
-        public void addPkgToFreezeList(String packageName) {
-            ArraySet<ProcessRecord> interactiveProcesses = interactiveProcessRecords.get(packageName);
-            if (interactiveProcesses != null && !interactiveProcesses.isEmpty()) {
-                ProcessRecord appRecord = interactiveProcesses.valueAt(0);
-                interactiveProcesses.remove(appRecord);
-                if (interactiveProcesses.isEmpty()) {
-                    interactiveProcessRecords.remove(packageName);
-                }
-            }
         }
 
     }
