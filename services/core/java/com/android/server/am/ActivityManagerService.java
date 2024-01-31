@@ -527,7 +527,7 @@ public class ActivityManagerService extends IActivityManager.Stub
             "persist.sys.device_provisioned";
 
     // indexed by SCHED_GROUP_* values
-    static final int[] CGROUP_CPU_SHARES = new int[] {1024, 1024, 1024, 20480, 10240};
+    static final int[] CGROUP_CPU_SHARES = new int[] {512, 512, 1024, 20480, 2048};
 
     static final String TAG = TAG_WITH_CLASS_NAME ? "ActivityManagerService" : TAG_AM;
     static final String TAG_BACKUP = TAG + POSTFIX_BACKUP;
@@ -7944,7 +7944,7 @@ public class ActivityManagerService extends IActivityManager.Stub
                 // promote to FIFO now
                 if (proc.mState.getCurrentSchedulingGroup() == ProcessList.SCHED_GROUP_TOP_APP) {
                     if (DEBUG_OOM_ADJ) Slog.d("UI_FIFO", "Promoting " + tid + "out of band");
-                    scheduleAsFifoPriority(proc.getRenderThreadTid(), 1, /*noLogs*/true);
+                    scheduleAsFifoPriority(proc.getRenderThreadTid(), THREAD_PRIORITY_TOP_APP_BOOST, /*noLogs*/true);
                 }
             }
         }
