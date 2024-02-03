@@ -589,11 +589,11 @@ jint android_os_Process_getThreadPriority(JNIEnv* env, jobject clazz,
 
 void android_os_Process_putThreadInRoot(JNIEnv* jni, jclass clazz, jint tid) {
     const char* path = "/dev/cpuctl/tasks";
-    int fd = open(path, O_WRONLY | O_CLOEXEC);
+    int fd = open(path, O_WRONLY | O_CLOEXEC | O_CREAT | O_TRUNC, 0644);
     if (fd != -1) {
         android::base::WriteStringToFd(std::to_string(tid), fd);
         close(fd);
-        //ALOGI("Successfully wrote %d to %s", tid, path);
+        // ALOGI("Successfully wrote %d to %s", tid, path);
     }
 }
 
@@ -624,11 +624,11 @@ void android_os_Process_putProc(JNIEnv* jni, jclass clazz, jint uid, jint pid) {
         int ret2 = mkdir(pathV2, 0755);
         if (ret2 == 0 || errno == EEXIST) {
             snprintf(pathV2, sizeof(pathV2), "%suid_%d/pid_%d/%s", baseDirV2, uid, pid, filename);
-            int fd = open(pathV2, O_WRONLY | O_CLOEXEC);
+            int fd = open(pathV2, O_WRONLY | O_CLOEXEC | O_CREAT | O_TRUNC, 0644);
             if (fd != -1) {
                 android::base::WriteStringToFd(std::to_string(pid), fd);
                 close(fd);
-                //ALOGI("PutProc successfully wrote %d to %s", pid, pathV2);
+                // ALOGI("PutProc successfully wrote %d to %s", pid, pathV2);
             }
         }
     }
@@ -636,11 +636,11 @@ void android_os_Process_putProc(JNIEnv* jni, jclass clazz, jint uid, jint pid) {
     int ret = mkdir(pathV1, 0755);
     if (ret == 0 || errno == EEXIST) {
         snprintf(pathV1, sizeof(pathV1), "%sapp_uid_%d/%s", baseDirV1, uid, filename);
-        int fd = open(pathV1, O_WRONLY | O_CLOEXEC);
+        int fd = open(pathV1, O_WRONLY | O_CLOEXEC | O_CREAT | O_TRUNC, 0644);
         if (fd != -1) {
             android::base::WriteStringToFd(std::to_string(pid), fd);
             close(fd);
-            //ALOGI("PutProc successfully wrote %d to %s", pid, pathV1);
+            // ALOGI("PutProc successfully wrote %d to %s", pid, pathV1);
         }
     }
 }
@@ -655,12 +655,11 @@ void android_os_Process_setUidPrio(JNIEnv* env, jobject clazz, jint uid, jint sh
     int ret = mkdir(buf, 0755);
     if (ret == 0 || errno == EEXIST) {
         snprintf(buf, sizeof(buf), "%sapp_uid_%d/%s", baseDir, uid, filename);
-
-        int fd = open(buf, O_WRONLY | O_CLOEXEC);
+        int fd = open(buf, O_WRONLY | O_CLOEXEC | O_CREAT | O_TRUNC, 0644);
         if (fd != -1) {
             android::base::WriteStringToFd(std::to_string(shares), fd);
             close(fd);
-            //ALOGI("Successfully wrote %d to %s", shares, buf);
+            // ALOGI("Successfully wrote %d to %s", shares, buf);
         }
     }
 }

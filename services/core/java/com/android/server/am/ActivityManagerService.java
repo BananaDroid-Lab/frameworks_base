@@ -526,8 +526,10 @@ public class ActivityManagerService extends IActivityManager.Stub
     private static final String SYSTEM_PROPERTY_DEVICE_PROVISIONED =
             "persist.sys.device_provisioned";
 
-    // indexed by SCHED_GROUP_* values
-    static final int[] CGROUP_CPU_SHARES = new int[] {512, 512, 1024, 20480, 2048};
+    private static final int BG_CPU_SHARES = 512; // 2.5%
+    private static final int DEFAULT_CPU_SHARES = 1024; // 5%
+    private static final int FG_CPU_SHARES = 10240; // 50%
+    private static final int TOP_APP_CPU_SHARES = 20480; // 100%
 
     static final String TAG = TAG_WITH_CLASS_NAME ? "ActivityManagerService" : TAG_AM;
     static final String TAG_BACKUP = TAG + POSTFIX_BACKUP;
@@ -4483,37 +4485,35 @@ public class ActivityManagerService extends IActivityManager.Stub
         return didSomething;
     }
 
-	final void updateCgroupPrioLocked(final UidRecord uidRec) {
-		int sg = ProcessList.SCHED_GROUP_DEFAULT;
-		if (uidRec.numSchedGroup[ProcessList.SCHED_GROUP_TOP_APP] > 0) {
-		    sg = ProcessList.SCHED_GROUP_TOP_APP;
-		} else if (uidRec.numSchedGroup[ProcessList.SCHED_GROUP_TOP_APP_BOUND] > 0) {
-		    sg = ProcessList.SCHED_GROUP_TOP_APP_BOUND;
-		} else if (uidRec.numSchedGroup[ProcessList.SCHED_GROUP_BACKGROUND] == uidRec.getNumOfProcs()) {
-		    sg = ProcessList.SCHED_GROUP_BACKGROUND;
-		} else if (uidRec.numSchedGroup[ProcessList.SCHED_GROUP_RESTRICTED] == uidRec.getNumOfProcs()) {
-		    sg = ProcessList.SCHED_GROUP_RESTRICTED;
-		}
-		if (sg != uidRec.setSchedGroup) {
-		    if (UserHandle.isApp(uidRec.mUid) || UserHandle.isIsolated(uidRec.mUid)) {
-		        final int callingUid = Binder.getCallingUid();
-		        final String packageName;
-		        final long token = Binder.clearCallingIdentity();
-		        final String[] uiCriticalPackages = { "com.android.systemui", "com.android.launcher3", "com.nothing.launcher", "com.google.android.apps.nexuslauncher" };
-		        try {
-		            packageName = AppGlobals.getPackageManager().getNameForUid(callingUid);
-		            if (packageName != null && Arrays.asList(uiCriticalPackages).contains(packageName.toLowerCase())) {
-		                sg = ProcessList.SCHED_GROUP_TOP_APP;
-		            }
-		        } catch (RemoteException e) {
-		        } finally {
-		            Binder.restoreCallingIdentity(token);
-		        }
-		        uidRec.setSchedGroup = sg;
-		        Process.setUidPrio(uidRec.mUid, CGROUP_CPU_SHARES[sg]);
-		    }
-		}
-	}
+    final void updateCgroupPrioLocked(int uid, int pid) {
+        if ((!UserHandle.isApp(uid) || !UserHandle.isIsolated(uid)) && UserHandle.isCore(uid)) {
+            return;
+        }
+        int cpuShares = DEFAULT_CPU_SHARES;
+        synchronized (mProcLock) {
+            ProcessRecord proc;
+            synchronized (mPidsSelfLocked) {
+                proc = mPidsSelfLocked.get(pid);
+            }
+            int schedulingGroup = proc.mState.getCurrentSchedulingGroup();
+            switch (schedulingGroup) {
+                case ProcessList.SCHED_GROUP_TOP_APP:
+                    cpuShares = TOP_APP_CPU_SHARES;
+                    break;
+                case ProcessList.SCHED_GROUP_TOP_APP_BOUND:
+                    cpuShares = FG_CPU_SHARES;
+                    break;
+                case ProcessList.SCHED_GROUP_BACKGROUND:
+                case ProcessList.SCHED_GROUP_RESTRICTED:
+                    cpuShares = BG_CPU_SHARES;
+                    break;
+            }
+        }
+        if (isAppForeground(uid)) {
+            cpuShares = FG_CPU_SHARES;
+        }
+        Process.setUidPrio(uid, cpuShares);
+    }
 
     @GuardedBy("this")
     void handleProcessStartOrKillTimeoutLocked(ProcessRecord app, boolean isKillTimeout) {
@@ -4673,7 +4673,7 @@ public class ActivityManagerService extends IActivityManager.Stub
             handleAppDiedLocked(app, pid, true, true, false /* fromBinderDied */);
         }
 
-        if (UserHandle.isApp(app.uid) || UserHandle.isIsolated(app.uid)) {
+        if ((UserHandle.isApp(app.uid) || UserHandle.isIsolated(app.uid)) && !UserHandle.isCore(app.uid)) {
             Process.putProc(app.uid, app.getPid());
         }
 
@@ -7874,7 +7874,7 @@ public class ActivityManagerService extends IActivityManager.Stub
     public static boolean scheduleAsRegularPriority(int tid, int prio, boolean suppressLogs) {
         try {
             int uid = Process.getUidForPid(tid);
-            if (UserHandle.isApp(uid) || UserHandle.isIsolated(uid)) {
+            if ((UserHandle.isApp(uid) || UserHandle.isIsolated(uid)) && !UserHandle.isCore(uid)) {
                 Process.putProc(uid, tid);
             }
             Process.setThreadScheduler(tid, Process.SCHED_OTHER, prio);
@@ -7902,7 +7902,7 @@ public class ActivityManagerService extends IActivityManager.Stub
     public static boolean scheduleAsFifoPriority(int tid, int prio, boolean suppressLogs) {
         try {
             int uid = Process.getUidForPid(tid);
-            if (UserHandle.isApp(uid) || UserHandle.isIsolated(uid)) {
+            if ((UserHandle.isApp(uid) || UserHandle.isIsolated(uid)) && !UserHandle.isCore(uid)) {
                 Process.putThreadInRoot(tid);
             }
             Process.setThreadScheduler(tid, Process.SCHED_FIFO | Process.SCHED_RESET_ON_FORK, prio);
@@ -7944,7 +7944,9 @@ public class ActivityManagerService extends IActivityManager.Stub
                 // promote to FIFO now
                 if (proc.mState.getCurrentSchedulingGroup() == ProcessList.SCHED_GROUP_TOP_APP) {
                     if (DEBUG_OOM_ADJ) Slog.d("UI_FIFO", "Promoting " + tid + "out of band");
-                    scheduleAsFifoPriority(proc.getRenderThreadTid(), THREAD_PRIORITY_TOP_APP_BOOST, /*noLogs*/true);
+                    // please refer to CL b6aa7c416c6d60fc099d157c3981cc59a5478081 about
+                    // why we can't boost to top-app priority after promoting to FIFO
+                    scheduleAsFifoPriority(proc.getRenderThreadTid(), 1, /*noLogs*/true);
                 }
             }
         }
