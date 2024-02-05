@@ -16,6 +16,7 @@
 
 package com.android.server.am;
 
+import static android.app.ActivityManager.PROCESS_STATE_IMPORTANT_FOREGROUND;
 import static android.app.ActivityManager.UidFrozenStateChangedCallback.UID_FROZEN_STATE_FROZEN;
 import static android.app.ActivityManager.UidFrozenStateChangedCallback.UID_FROZEN_STATE_UNFROZEN;
 import static android.app.ActivityManagerInternal.OOM_ADJ_REASON_ACTIVITY;
@@ -2488,21 +2489,17 @@ public final class CachedAppOptimizer {
     }
 
     public static final class FreezerProcessPolicies {
-
+            
         public boolean isProcessInteractive(ProcessRecord app) {
             if (app == null) return false;
             final ProcessStateRecord state = app.mState;
-            final boolean isUserProcess = state.getCurAdj() < state.getSetAdj() 
-                && (state.getCurAdj() < ProcessList.CACHED_APP_MIN_ADJ 
-                    || state.getCurAdj() > ProcessList.CACHED_APP_MAX_ADJ);
+            UidRecord uidRec = app.getUidRecord();
+            if (uidRec == null || uidRec.isIdle()) {
+                return false;
+            }
             if (state.hasForegroundActivities() 
-                   || isUserProcess
-                   || state.hasRepForegroundActivities()
-                   || state.hasShownUi()
-                   || state.hasTopUi()
-                   || state.hasOverlayUi()
-                   || state.getCurAdj() < ProcessList.CACHED_APP_MIN_ADJ 
-                   || state.getCurAdj() > ProcessList.CACHED_APP_MAX_ADJ) {
+                || state.hasOverlayUi()
+                || uidRec.getCurProcState() <= PROCESS_STATE_IMPORTANT_FOREGROUND) {
                 interactiveProcessRecords.computeIfAbsent(app.info.packageName, k -> new ArraySet<>()).add(app);
                 return true;
             } else {
