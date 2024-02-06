@@ -587,6 +587,11 @@ jint android_os_Process_getThreadPriority(JNIEnv* env, jobject clazz,
     return pri;
 }
 
+jint android_os_Process_UidFromPid(JNIEnv* jni, jclass clazz, jint pid) {
+    const int uid = uid_from_pid(pid);
+    return uid;
+}
+
 void android_os_Process_putThreadInRoot(JNIEnv* jni, jclass clazz, jint tid) {
     const char* path = "/dev/cpuctl/tasks";
     int fd = open(path, O_WRONLY | O_CLOEXEC | O_CREAT | O_TRUNC, 0644);
@@ -597,10 +602,11 @@ void android_os_Process_putThreadInRoot(JNIEnv* jni, jclass clazz, jint tid) {
     }
 }
 
-void android_os_Process_putProc(JNIEnv* jni, jclass clazz, jint uid, jint pid) {
+void android_os_Process_putProc(JNIEnv* jni, jclass clazz, jint pid) {
     const char* baseDirV1 = "/dev/cpuctl/";
     const char* baseDirV2 = "/sys/fs/cgroup/";
     const char* filename = "cgroup.procs";
+    const int uid = uid_from_pid(pid);
 
     char pathV1[PATH_MAX];
     char pathV2[PATH_MAX];
@@ -645,9 +651,10 @@ void android_os_Process_putProc(JNIEnv* jni, jclass clazz, jint uid, jint pid) {
     }
 }
 
-void android_os_Process_setUidPrio(JNIEnv* env, jobject clazz, jint uid, jint shares) {
+void android_os_Process_setUidPrio(JNIEnv* env, jobject clazz, jint pid, jint shares) {
     const char* baseDir = "/dev/cpuctl/";
     const char* filename = "cpu.shares";
+    const int uid = uid_from_pid(pid);
 
     char buf[PATH_MAX];
     snprintf(buf, sizeof(buf), "%sapp_uid_%d/", baseDir, uid);
@@ -1405,8 +1412,9 @@ static const JNINativeMethod methods[] = {
         {"setThreadGroup", "(II)V", (void*)android_os_Process_setThreadGroup},
         {"setThreadGroupAndCpuset", "(II)V", (void*)android_os_Process_setThreadGroupAndCpuset},
         {"putThreadInRoot", "(I)V", (void*)android_os_Process_putThreadInRoot},
-        {"putProc", "(II)V", (void*)android_os_Process_putProc},
+        {"putProc", "(I)V", (void*)android_os_Process_putProc},
         {"setUidPrio", "(II)V", (void*)android_os_Process_setUidPrio},
+        {"uidFromPid", "(I)I", (void*)android_os_Process_UidFromPid},
         {"setProcessGroup", "(II)V", (void*)android_os_Process_setProcessGroup},
         {"getProcessGroup", "(I)I", (void*)android_os_Process_getProcessGroup},
         {"createProcessGroup", "(II)I", (void*)android_os_Process_createProcessGroup},

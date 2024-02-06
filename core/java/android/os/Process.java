@@ -1109,7 +1109,7 @@ public class Process {
     /**
     * @hide
     */
-    public static final native void setUidPrio(int uid, int group)
+    public static final native void setUidPrio(int pid, int group)
             throws IllegalArgumentException, SecurityException;
 
     /**
@@ -1121,7 +1121,13 @@ public class Process {
     /**
     * @hide
     */
-    public static final native void putProc(int uid, int pid)
+    public static final native void putProc(int pid)
+            throws IllegalArgumentException, SecurityException;
+            
+    /**
+    * @hide
+    */
+    public static final native int uidFromPid(int pid)
             throws IllegalArgumentException, SecurityException;
 
     /**

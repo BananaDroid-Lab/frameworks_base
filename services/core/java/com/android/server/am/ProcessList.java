@@ -3292,7 +3292,7 @@ public final class ProcessList {
                 if (uidRecord != null) {
                     uidRecord.removeProcess(record);
                     if (uidRecord.getNumOfProcs() == 0) {
-                        mService.updateCgroupPrioLocked(uid, pid);
+                        mService.updateCgroupPrioLocked(pid);
                         // No more processes using this uid, tell clients it is gone.
                         if (DEBUG_UID_OBSERVERS) {
                             Slog.i(TAG_UID_OBSERVERS, "No more processes in " + uidRecord);
