@@ -3055,10 +3055,31 @@ public class OomAdjuster {
                         // do nothing if we already switched to RT
                         if (oldSchedGroup != SCHED_GROUP_TOP_APP) {
                             app.getWindowProcessController().onTopProcChanged();
+                            if (!Process.isAppRegular(app.getPid())) {
+                                // Switch UI pipeline for app to SCHED_FIFO
+                                state.setSavedPriority(Process.getThreadPriority(app.getPid()));
+                                mService.scheduleAsFifoPriority(app.getPid(), 1, true);
+                                if (renderThreadTid != 0) {
+                                    mService.scheduleAsFifoPriority(renderThreadTid, 1, /* suppressLogs */true);
+                                }
+                            }
                         }
                     } else if (oldSchedGroup == SCHED_GROUP_TOP_APP
                             && curSchedGroup != SCHED_GROUP_TOP_APP) {
                         app.getWindowProcessController().onTopProcChanged();
+                        if (!Process.isAppRegular(app.getPid())) {
+                            try {
+                                // Reset UI pipeline to SCHED_OTHER 
+                                mService.scheduleAsRegularPriority(app.getPid(),
+                                        state.getSavedPriority(), /* suppressLogs */ true);
+                                if (renderThreadTid != 0) {
+                                    mService.scheduleAsRegularPriority(renderThreadTid, THREAD_PRIORITY_DISPLAY, true);
+                                }
+                            } catch (Exception e) {
+                                Slog.w(TAG,
+                                        "Failed to set scheduling policy of " + app.getPid(), e);
+                            }
+                        }
                     }
                 } catch (Exception e) {
                     if (DEBUG_ALL) {

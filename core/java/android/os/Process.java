@@ -1694,4 +1694,12 @@ public class Process {
     }
 
     private static native int nativePidFdOpen(int pid, int flags) throws ErrnoException;
+
+    /**
+     * @hide
+     */
+    public static boolean isAppRegular(int pid) {
+        int uid = uidFromPid(pid);
+        return (UserHandle.isApp(uid) || UserHandle.isIsolated(uid)) && !UserHandle.isCore(uid);
+    }
 }
