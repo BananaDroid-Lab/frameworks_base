@@ -1700,6 +1700,6 @@ public class Process {
      */
     public static boolean isAppRegular(int pid) {
         int uid = uidFromPid(pid);
-        return (UserHandle.isApp(uid) || UserHandle.isIsolated(uid)) && !UserHandle.isCore(uid);
+        return isApplicationUid(uid) || isIsolatedUid(uid);
     }
 }
