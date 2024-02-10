@@ -2617,7 +2617,7 @@ public class ActivityManagerService extends IActivityManager.Stub
                     Process.THREAD_GROUP_SYSTEM);
             Process.setThreadGroupAndCpuset(
                     mOomAdjuster.mCachedAppOptimizer.mCachedAppOptimizerThread.getThreadId(),
-                    Process.THREAD_GROUP_BACKGROUND);
+                    Process.THREAD_GROUP_SYSTEM);
         } catch (Exception e) {
             Slog.w(TAG, "Setting background thread cpuset failed");
         }
@@ -5152,7 +5152,6 @@ public class ActivityManagerService extends IActivityManager.Stub
                                 String data, Bundle extras, boolean ordered,
                                 boolean sticky, int sendingUser) {
                             synchronized (mProcLock) {
-                                mOomAdjuster.mCachedAppOptimizer.compactAllSystem();
                                 mAppProfiler.requestPssAllProcsLPr(
                                         SystemClock.uptimeMillis(), true, false);
                             }
