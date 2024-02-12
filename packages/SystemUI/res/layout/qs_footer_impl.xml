@@ -58,7 +58,7 @@
                     android:layout_marginBottom="4dp"
                     android:clickable="true"
                     android:layout_weight="0.5"
-                    android:backgroundTint="?attr/offStateColor">
+                    android:backgroundTint="?attr/shadeInactive">
                     <ImageView
                         android:layout_gravity="center|start"
                         android:id="@+id/user_picture"
@@ -95,7 +95,7 @@
                     android:layout_marginTop="4dp"
                     android:clickable="true"
                     android:layout_weight="0.5"
-                    android:backgroundTint="?attr/offStateColor">
+                    android:backgroundTint="?attr/shadeInactive">
                     <ImageView
                         android:layout_gravity="center|start"
                         android:layout_width="20dp"
@@ -137,7 +137,7 @@
             <androidx.viewpager.widget.ViewPager
                 android:id="@+id/qs_footer_pager"
                 android:background="@drawable/background_footer"
-                android:backgroundTint="?attr/offStateColor"
+                android:backgroundTint="?attr/shadeInactive"
                 android:layout_width="0dp"
                 android:layout_height="170dp"
                 android:layout_weight="1.0">

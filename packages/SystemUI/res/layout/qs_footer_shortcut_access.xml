@@ -24,7 +24,7 @@
     android:layout_height="170dp"
     android:layout_weight="1.0"
     android:layout_marginStart="8dp"
-    android:backgroundTint="?attr/offStateColor">
+    android:backgroundTint="?attr/shadeInactive">
         <LinearLayout
             android:gravity="center"
             android:orientation="horizontal"
